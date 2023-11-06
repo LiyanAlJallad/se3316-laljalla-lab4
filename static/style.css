@@ -1,0 +1,51 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0e6d2; /* Light brown background color */
+    color: #4d362e; /* Brown text color */
+}
+
+.search-bar {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+    background-color: #b8a089; /* Darker brown background color for the search bar */
+    padding: 15px; /* Add some padding to the search bar */
+    border-radius: 10px; /* Rounded corners for the search bar */
+}
+
+.row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+#searchInput {
+    padding: 10px;
+    margin-right: 10px;
+    border: 1px solid #7d6358; /* Dark brown border for the input field */
+    border-radius: 5px; /* Rounded corners for the input field */
+}
+
+.results {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+}
+
+.result-card {
+    border: 1px solid #7d6358; /* Dark brown border for result cards */
+    padding: 10px;
+    border-radius: 5px;
+    background-color: #f5e9d5; /* Light brown background color for result cards */
+}
+
+.result-card h3 {
+    margin-top: 0;
+    color: #4d362e; /* Brown text color for result card headings */
+}
+
+.error {
+    color: red;
+    font-weight: bold;
+    margin: 20px;
+}
