@@ -1,1 +1,7 @@
-*.json
+# *.json
+# storeLists.json
+# superhero_info.json
+# superhero_powers.json
+
+node_modules/
+
