@@ -23,3 +23,28 @@
             <button onclick="searchSuperhero()">Search</button>
         </div>
         
+        <div class="row">
+            <input type="text" id="listNameInput" placeholder="Enter list name...">
+            <button onclick="createNewList()">Create List</button>
+        </div>
+    </div>
+    
+    <div class="lists-display">
+        <select id="listsDropdown" onclick="populateListsDropdown()">
+            <option value="">Select a favorite list</option>
+        </select>
+        <div class="update-list-container">
+            <div class="list-title">Update Your List</div>
+            <select id="superheroNamesSelect" multiple></select>
+            <!-- Add button below the superheroNamesInput -->
+            <button id="addSuperheroButton" onclick="addSuperheroesToList()">Add</button>
+        </div>
+        <button onclick="displayListDetails()">Show List Details</button>
+        <button onclick="deleteList()">Delete List</button>
+    </div>
+
+<div class="results" id="results"></div>
+    
+<script defer src="script.js"></script>
+</body>
+</html>
