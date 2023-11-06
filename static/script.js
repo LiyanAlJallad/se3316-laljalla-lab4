@@ -97,3 +97,60 @@ function displayError(message) {
     resultsDiv.appendChild(errorDiv);
 }
 
+async function createNewList() {
+    const listNameInput = document.getElementById('listNameInput');
+    const listName = listNameInput.value.trim();
+    
+
+    if (!listName) {
+        displayError('Please enter a list name.');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/superhero_lists/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify([{ name: listName }])
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(errorText || "There was a problem creating the list.");
+        }
+
+        const responseData = await response.json();
+        displaySuccess(`List "${listName}" created successfully!`);
+        await populateListsDropdown(responseData.newList); // Pass the new list directly
+    } 
+    catch (error) {
+        console.error("Error during creating a new list:", error);
+        displayError(error.message);
+    }
+}
+
+
+// Function to populate lists dropdown
+async function populateListsDropdown() {
+    const listsDropdown = document.getElementById('listsDropdown');
+    const response = await fetch('/api/superhero_lists/listNames');
+    const lists = await response.json();
+    
+    const existingOptions = listsDropdown.querySelectorAll('option');
+
+
+    lists.forEach(list => {
+        // Check if the option already exists
+        const exists = Array.from(existingOptions).some(option => option.value === list);
+        
+        // If the option does not exist, append it
+        if (!exists) {
+          const option = document.createElement('option');
+          option.value = list;
+          option.innerText = list;
+          listsDropdown.appendChild(option);
+        }
+    });
+}
