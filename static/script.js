@@ -96,3 +96,4 @@ function displayError(message) {
     errorDiv.appendChild(textNode);
     resultsDiv.appendChild(errorDiv);
 }
+
