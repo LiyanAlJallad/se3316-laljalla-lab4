@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Superhero Search</title>
+</head>
+<body>
+
+    <div class="search-bar">
+        <div class="row">
+            <input type="text" id="searchInput" placeholder="Search for a superhero...">
+            <select id="filterType" onchange="filterTypeChanged()">
+                <option value="name">Name</option>
+                <option value="Race">Race</option>
+                <option value="Publisher">Publisher</option>
+                <option value="Power">Power</option>
+            </select>
+            <select id="powerDropdown" style="display:none;">
+                <option value="">Select a power</option>
+            </select>
+            <button onclick="searchSuperhero()">Search</button>
+        </div>
+        
