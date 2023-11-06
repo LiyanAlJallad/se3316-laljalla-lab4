@@ -49,3 +49,104 @@ body {
     font-weight: bold;
     margin: 20px;
 }
+
+.list-management {
+    margin: 20px 0;
+}
+
+#listNameInput {
+    padding: 10px;
+    margin-right: 10px;
+    border: 1px solid #7d6358; /* Dark brown border for the input field */
+    border-radius: 5px; /* Rounded corners for the input field */
+}
+
+.lists-display {
+    margin: 20px 0;
+}
+
+.checkbox-list {
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid #7d6358; /* Dark brown border for the checkbox list */
+    margin-top: 10px;
+    padding: 10px;
+    width: 200px;
+    border-radius: 5px; /* Rounded corners for the checkbox list */
+    background-color: #f5e9d5; /* Light brown background color for the checkbox list */
+}
+
+.checkbox-list label {
+    display: block;
+    cursor: pointer;
+}
+
+.checkbox-list input[type="checkbox"] {
+    margin-right: 5px;
+}
+
+.lists-display {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.list-title {
+    margin-bottom: 5px;
+}
+
+.update-list-container {
+    display: flex;
+    flex-direction: column;
+}
+
+#superheroNamesInput {
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+button {
+    padding: 10px 20px;
+    background-color: #7d6358; /* Dark brown background color for buttons */
+    color: #f5e9d5; /* Light brown text color for buttons */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+/* Style the search button on hover */
+button:hover {
+    background-color: #4d362e; /* Darker brown background color on hover */
+}
+
+/* Style the input fields */
+input[type="text"] {
+    padding: 10px;
+    margin-right: 10px;
+    border: 1px solid #7d6358; /* Dark brown border for input fields */
+    border-radius: 5px;
+}
+
+/* Style the select dropdowns */
+select {
+    padding: 10px;
+    border: 1px solid #7d6358; /* Dark brown border for select dropdowns */
+    border-radius: 5px;
+    background-color: #f5e9d5; /* Light brown background color for select dropdowns */
+    color: #4d362e; /* Brown text color for select dropdowns */
+}
+
+/* Style the buttons inside .lists-display */
+.lists-display button {
+    padding: 10px 20px;
+    background-color: #7d6358; /* Dark brown background color for buttons */
+    color: #f5e9d5; /* Light brown text color for buttons */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+/* Style the buttons inside .lists-display on hover */
+.lists-display button:hover {
+    background-color: #4d362e; /* Darker brown background color on hover */
+}
