@@ -2,6 +2,20 @@ async function searchSuperhero() {
     const filterType = document.getElementById('filterType').value;
     let data;
 
+    const countInput = document.getElementById('count').value;
+    const count = countInput && !isNaN(countInput) && countInput.length <= 3 ? parseInt(countInput, 10) : undefined;
+
+    if (countInput && isNaN(countInput)) {
+        displayError("Please enter a valid number in the count field.");
+        return;
+    }
+
+    // Scenario 2: Check if the input exceeds three digits
+    if (countInput && countInput.length > 3) {
+        displayError("The count field cannot exceed three digits.");
+        return;
+    }
+
     try {
         if (filterType === 'Power') {
             const selectedPower = document.getElementById('powerDropdown').value;
@@ -9,22 +23,48 @@ async function searchSuperhero() {
             if (!selectedPower) {
                 throw new Error("Please select a power.");
             }
-            const response = await fetch(`/api/superhero_powers/byPower?power=${encodeURIComponent(selectedPower)}`);
+           
+            const url = `/api/superhero_powers/byPower?power=${encodeURIComponent(selectedPower)}` + (count ? `&n=${count}` : '');
+            const response = await fetch(url);
+
+            // const response = await fetch(`/api/superhero_powers/byPower?power=${encodeURIComponent(selectedPower)}`);
             if (!response.ok) {
                 throw new Error("There was a problem with the fetch operation.");
             }
             data = await response.json();
         } else {
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const response = await fetch(`/api/superhero_info/match?field=${encodeURIComponent(filterType)}&pattern=${encodeURIComponent(searchTerm)}`);
+            // const response = await fetch(`/api/superhero_info/match?field=${encodeURIComponent(filterType)}&pattern=${encodeURIComponent(searchTerm)}`);
+            const url = `/api/superhero_info/match?field=${encodeURIComponent(filterType)}&pattern=${encodeURIComponent(searchTerm)}` + (count ? `&n=${count}` : '');
+            const response = await fetch(url);
+
             if (!response.ok) {
                 throw new Error("There was a problem with the fetch operation.");
             }
             data = await response.json();
         }
 
-        // Assuming displayResults handles empty data and sanitizes inputs
-        data.sort((a, b) => a.name.localeCompare(b.name)); // this line to sort the data
+        const sortOption = document.getElementById('sort-seleciton').value;
+        // Function to handle undefined values
+        const handleUndefined = (value) => value === '-' ? '\uffff' : value; // Using '-' instead of undefined
+
+        // Sorting based on selected option
+        switch (sortOption) {
+            case 'name':
+                data.sort((a, b) => a.name.localeCompare(b.name));
+                break;
+            case 'publisher':
+                data.sort((a, b) => handleUndefined(a.Publisher).localeCompare(handleUndefined(b.Publisher)));
+                break;
+            case 'race':
+                data.sort((a, b) => handleUndefined(a.Race).localeCompare(handleUndefined(b.Race)));
+                break;
+            default:
+                // Default to name if sort option is not recognized
+                data.sort((a, b) => a.name.localeCompare(b.name));
+        }
+
+        // data.sort((a, b) => a.name.localeCompare(b.name));
         displayResults(data);
     } catch (error) {
         console.error("Error during search:", error);
@@ -158,7 +198,6 @@ async function populateListsDropdown() {
 async function displayListDetails() {
     const listSelect = document.getElementById('listsDropdown');
     const listName = listSelect.value;
-  
     if (!listName) {
       displayError('Please select a list to display its details.');
       return;
@@ -166,14 +205,15 @@ async function displayListDetails() {
   
     try {
       // Fetch the detailed information of superheroes in the selected list
-      const response = await fetch(`/api/superhero_lists/${encodeURIComponent(listName)}/info`);
+        const response = await fetch(`/api/superhero_lists/${encodeURIComponent(listName)}/info`);
       if (!response.ok) {
         throw new Error("There was a problem with the fetch operation.");
       }
       const superheroes = await response.json();
-      superheroes.sort((a, b) => a.name.localeCompare(b.name)); // Add this line to sort the data
+       
 
-  
+      superheroes.sort((a, b) => a.name.localeCompare(b.name)); 
+
       // Clear previous results
       const resultsDiv = document.getElementById('results');
       resultsDiv.innerHTML = '';
@@ -358,3 +398,4 @@ document.addEventListener('DOMContentLoaded', function() {
     populateListsDropdown();
     populateSuperheroNamesDropdown(); // Call this function to populate the dropdown
 });
+

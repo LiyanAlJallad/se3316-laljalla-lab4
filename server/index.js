@@ -53,6 +53,7 @@ app.use((req, res, next) => {
     next();
 });
 
+let superhero_lists = storeLists.get('superhero_lists') || [];
 
 // Routes for superhero_info
 infoRouter.route('/')
@@ -145,7 +146,9 @@ powersRouter.route('/byPower')
 infoRouter.route('/match')
     .get((req, res) => {
         const { field, pattern } = req.query;
-        const n = parseInt(req.query.n, 10) || superhero_info.length;
+        const n = req.query.n ? Math.min(parseInt(req.query.n, 10), 999) : superhero_info.length; // Limit the max number of results to 999
+
+        // const n = parseInt(req.query.n, 10) || superhero_info.length;
 
         // Check if the required parameters are provided
         if (!field || !pattern) {
@@ -165,7 +168,6 @@ infoRouter.route('/match')
         res.send(matchedSuperheroes);
     });
 
-let superhero_lists = storeLists.get('superhero_lists') || [];
 
 listRouter.route('/')
     .get((req, res) => {

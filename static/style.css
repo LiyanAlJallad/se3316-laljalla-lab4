@@ -150,3 +150,10 @@ select {
 .lists-display button:hover {
     background-color: #4d362e; /* Darker brown background color on hover */
 }
+
+#count {
+    width: 60px; /* Adjusts the width of the input box */
+    height: 30px; /* Adjusts the height of the input box */
+    padding: 2px; /* Adds some padding inside the input box */
+    font-size: 18px; /* Adjusts the font size inside the input box */
+}
