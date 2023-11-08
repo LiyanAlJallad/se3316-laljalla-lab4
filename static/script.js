@@ -1,3 +1,5 @@
+let hostNm= window.location.hostname; 
+
 async function searchSuperhero() {
     const filterType = document.getElementById('filterType').value;
     let data;
@@ -24,18 +26,16 @@ async function searchSuperhero() {
                 throw new Error("Please select a power.");
             }
            
-            const url = `/api/superhero_powers/byPower?power=${encodeURIComponent(selectedPower)}` + (count ? `&n=${count}` : '');
+            const url = `http://${hostNm}:3000/api/superhero_powers/byPower?power=${encodeURIComponent(selectedPower)}` + (count ? `&n=${count}` : '');
             const response = await fetch(url);
 
-            // const response = await fetch(`/api/superhero_powers/byPower?power=${encodeURIComponent(selectedPower)}`);
             if (!response.ok) {
                 throw new Error("There was a problem with the fetch operation.");
             }
             data = await response.json();
         } else {
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            // const response = await fetch(`/api/superhero_info/match?field=${encodeURIComponent(filterType)}&pattern=${encodeURIComponent(searchTerm)}`);
-            const url = `/api/superhero_info/match?field=${encodeURIComponent(filterType)}&pattern=${encodeURIComponent(searchTerm)}` + (count ? `&n=${count}` : '');
+            const url = `http://${hostNm}:3000/api/superhero_info/match?field=${encodeURIComponent(filterType)}&pattern=${encodeURIComponent(searchTerm)}` + (count ? `&n=${count}` : '');
             const response = await fetch(url);
 
             if (!response.ok) {
@@ -112,7 +112,7 @@ function filterTypeChanged() {
 
 async function populatePowerDropdown() {
     const powerDropdown = document.getElementById('powerDropdown');
-    const response = await fetch('/api/superhero_powers/all');
+    const response = await fetch(`http://${hostNm}:3000/api/superhero_powers/all`);
     const powers = await response.json();
 
     // Clear existing options
@@ -148,7 +148,7 @@ async function createNewList() {
     }
 
     try {
-        const response = await fetch('/api/superhero_lists/', {
+        const response = await fetch(`http://${hostNm}:3000/api/superhero_lists/`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -175,7 +175,7 @@ async function createNewList() {
 // Function to populate lists dropdown
 async function populateListsDropdown() {
     const listsDropdown = document.getElementById('listsDropdown');
-    const response = await fetch('/api/superhero_lists/listNames');
+    const response = await fetch(`http://${hostNm}:3000/api/superhero_lists/listNames`);
     const lists = await response.json();
     
     const existingOptions = listsDropdown.querySelectorAll('option');
@@ -205,7 +205,7 @@ async function displayListDetails() {
   
     try {
       // Fetch the detailed information of superheroes in the selected list
-        const response = await fetch(`/api/superhero_lists/${encodeURIComponent(listName)}/info`);
+        const response = await fetch(`http://${hostNm}:3000/api/superhero_lists/${encodeURIComponent(listName)}/info`);
       if (!response.ok) {
         throw new Error("There was a problem with the fetch operation.");
       }
@@ -252,7 +252,7 @@ async function displayListDetails() {
 
 async function populateSuperheroNamesDropdown() {
     const superheroNamesDropdown = document.getElementById('superheroNamesDropdown');
-    const response = await fetch('/api/superhero_info/allNames');
+    const response = await fetch(`http://${hostNm}:3000/api/superhero_info/allNames`);
     const superheroNames = await response.json();
 
     // Clear existing options
@@ -270,7 +270,7 @@ async function populateSuperheroNamesDropdown() {
 async function populateSuperheroNamesDropdown() {
     const superheroNamesSelect = document.getElementById('superheroNamesSelect');
     try {
-        const response = await fetch('/api/superhero_info/allNames');
+        const response = await fetch(`http://${hostNm}:3000/api/superhero_info/allNames`);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -309,7 +309,7 @@ async function addSuperheroesToList() {
 
     try {
         // Get IDs for the selected superhero names
-        const idsResponse = await fetch('/api/superhero_info/getIDs', {
+        const idsResponse = await fetch(`http://${hostNm}:3000/api/superhero_info/getIDs`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -324,7 +324,7 @@ async function addSuperheroesToList() {
         const ids = await idsResponse.json();
 
         // Update the selected list with the new IDs
-        const listResponse = await fetch(`/api/superhero_lists/${encodeURIComponent(listName)}`, {
+        const listResponse = await fetch(`http://${hostNm}:3000/api/superhero_lists/${encodeURIComponent(listName)}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -375,7 +375,7 @@ async function deleteList() {
     }
 
     try {
-        const response = await fetch(`/api/superhero_lists/${encodeURIComponent(listName)}`, {
+        const response = await fetch(`http://${hostNm}:3000/api/superhero_lists/${encodeURIComponent(listName)}`, {
             method: 'DELETE',
         });
 
