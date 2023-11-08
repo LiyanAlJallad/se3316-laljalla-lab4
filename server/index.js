@@ -9,7 +9,7 @@ const cors = require(cors)
 const storeLists = new Storage(path.join(__dirname,'storeLists.json')) 
 
 const app = express();
-const port = 3000;
+const port = 8080;
 
 // Routers initialization
 const infoRouter = express.Router();
