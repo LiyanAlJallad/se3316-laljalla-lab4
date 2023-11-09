@@ -2,7 +2,7 @@ const path = require('path')
 const express = require('express');
 const fs = require('fs').promises;
 const Storage = require('node-storage')
-const cors = require(cors)
+const cors = require('cors');
 
 
 
@@ -17,8 +17,8 @@ const powersRouter = express.Router();
 const listRouter = express.Router();
 
 // File paths
-const infoFilePath = 'superhero_info.json';
-const powersFilePath = 'superhero_powers.json';
+const infoFilePath = 'server\\superhero_info.json';
+const powersFilePath = 'server\\superhero_powers.json';
 
 let superhero_info = [];
 let superhero_powers = [];
@@ -54,7 +54,7 @@ app.use((req, res, next) => {
     console.log(`${req.method} request for ${req.url}`);
     next();
 });
-app.use(cors({origin: 'https://54.159.105.180/'}));
+app.use(cors());
 let superhero_lists = storeLists.get('superhero_lists') || [];
 
 // Routes for superhero_info
