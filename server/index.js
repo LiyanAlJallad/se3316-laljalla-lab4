@@ -485,36 +485,6 @@ userRouter.post('/login', async (req, res) => {
     }
 });
 
-// infoRouter.route('/search')
-//     .get((req, res) => {
-//         const { name, Race, Power, Publisher } = req.query;
-//         let results = superhero_info;
-
-//         if (name) {
-//             results = results.filter(hero => hero.name.toLowerCase().startsWith(name.toLowerCase()));
-//         }
-
-//         if (Race) {
-//             results = results.filter(hero => hero.Race && hero.Race.toLowerCase().startsWith(Race.toLowerCase()));
-//         }
-
-//         if (Power) {
-//             results = results.filter(hero => {
-//                 const heroPowers = superhero_powers.find(p => p.hero_names === hero.name);
-//                 return heroPowers && heroPowers[Power] && heroPowers[Power].toLowerCase() === "true";
-//             });
-//         }
-
-//         if (Publisher) {
-//             results = results.filter(hero => hero.Publisher && hero.Publisher.toLowerCase().startsWith(Publisher.toLowerCase()));
-//         }
-
-//         // Return only name and publisher of each hero
-//         results = results.map(hero => ({ name: hero.name, Publisher: hero.Publisher }));
-
-//         res.json(results);
-//     });
-
 
 infoRouter.route('/search')
     .get((req, res) => {
@@ -556,6 +526,25 @@ infoRouter.route('/search')
         results = results.map(hero => ({ name: hero.name.trim(), Publisher: hero.Publisher.trim() }));
 
         res.json(results);
+    });
+
+infoRouter.route('/details/:name')
+    .get((req, res) => {
+        const superheroName = req.params.name;
+        const superhero = superhero_info.find(s => s.name.toLowerCase() === superheroName.toLowerCase());
+        
+        if (!superhero) {
+            return res.status(404).json({message: 'Superhero not found'});
+        }
+
+        // Exclude name and Publisher from the superhero details
+        const { name, Publisher, ...details } = superhero;
+
+        // Find the superhero's powers marked as True
+        const powers = superhero_powers.find(p => p.hero_names === superheroName);
+        const truePowers = powers ? Object.fromEntries(Object.entries(powers).filter(([power, hasPower]) => hasPower === "True" && power !== "hero_names")) : {};
+
+        res.json({ details, powers: truePowers });
     });
 
 
