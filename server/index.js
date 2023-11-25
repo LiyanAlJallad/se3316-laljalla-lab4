@@ -3,10 +3,40 @@ const express = require('express');
 const fs = require('fs').promises;
 const Storage = require('node-storage')
 const cors = require('cors');
+const bcrypt = require('bcrypt');
+
+const crypto = require('crypto');
+
+// Helper function to generate a unique verification token
+function generateVerificationToken() {
+    return crypto.randomBytes(16).toString('hex');
+}
+
+function initializeAdminUser() {
+    let users = storeUsers.get('users') || [];
+
+    if (!users.some(user => user.email === 'admin@uwo.ca')) {
+        const adminPassword = 'admin';
+        const hashedAdminPassword = bcrypt.hashSync(adminPassword, 10);
+
+        users.push({
+            email: 'admin@uwo.ca',
+            hashedPassword: hashedAdminPassword,
+            nickname: 'Admin',
+            isVerified: true,
+            admin: true
+        });
+
+        storeUsers.put('users', users);
+    }
+}
 
 
 
-const storeLists = new Storage(path.join(__dirname,'storeLists.json')) 
+
+const storeLists = new Storage(path.join(__dirname,'storeLists.json'));
+const storeUsers = new Storage(path.join(__dirname,'users.json'));  
+
 
 const app = express();
 const port = 8080;
@@ -15,6 +45,7 @@ const port = 8080;
 const infoRouter = express.Router();
 const powersRouter = express.Router();
 const listRouter = express.Router();
+const userRouter = express.Router();
 
 // File paths
 const infoFilePath = 'server\\superhero_info.json';
@@ -289,12 +320,255 @@ listRouter.route('/:name/info')
     });
 
 
-// Mount the routers
+//LAB4 
+
+
+userRouter.post('/register', async (req, res) => {
+    try {
+        const { email, password, nickname } = req.body;
+
+        // Check if this is the admin user
+        const isAdmin = email === 'admin@uwo.ca';
+
+        // Use a default password for the admin user
+        const finalPassword = isAdmin ? 'admin' : password;
+
+        const hashedPassword = await bcrypt.hash(finalPassword, 10);
+
+        let users = storeUsers.get('users') || [];
+
+        if (users.some(user => user.email === email)) {
+            return res.status(400).json({message: 'User already exists'});
+        }
+
+        const verificationToken = generateVerificationToken();
+
+        users.push({ 
+            email, 
+            hashedPassword, 
+            nickname, 
+            isVerified: false, 
+            verificationToken,
+            admin: isAdmin // Set admin flag
+        });
+
+        storeUsers.put('users', users);
+            
+        res.status(201).json({ message: 'User created successfully. Please verify your email.', verificationToken });
+    } catch (error) {
+        res.status(500).json('Error in user registration');
+    }
+});
+
+
+userRouter.put('/updatePassword', async (req, res) => {
+    try {
+        const { email, oldPassword, newPassword } = req.body;
+
+        // Retrieve existing users
+        let users = storeUsers.get('users') || [];
+
+        // Find the user
+        const user = users.find(user => user.email === email);
+
+        if (!user) {
+            return res.status(404).json({message:'User not found'});
+        }
+
+        // Check if email is verified
+        if (!user.isVerified) {
+            return res.status(401).json({message:'Email not verified'});
+        }
+
+        // Verify old password
+        const isMatch = await bcrypt.compare(oldPassword, user.hashedPassword);
+        if (!isMatch) {
+            return res.status(401).json({message:'Wrong old password'});
+        }
+
+        // Update user's password
+        user.hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        // Store updated users array
+        storeUsers.put('users', users);
+
+        res.json({message:'Password updated successfully'});
+    } catch (error) {
+        console.error('Error in updating password:', error); // Log any errors
+        res.status(500).json({message:'Error in updating password'});
+    }
+
+});
+
+
+userRouter.get('/getUserByEmail', async (req, res) => {
+    try {
+        const { email } = req.query;  // Get email from query parameters
+
+        // Retrieve existing users
+        const users = storeUsers.get('users') || [];
+
+        // Find the user by email
+        const user = users.find(user => user.email === email);
+
+        // If user is found, return user data
+        if (user) {
+            // Return user details except the hashed password
+            const { hashedPassword, ...userDetails } = user;
+            return res.status(200).send(userDetails);
+        } else {
+            // User not found
+            return res.status(404).json({message:'User not found'});
+        }
+    } catch (error) {
+        res.status(500).json({message:'Error during user retrieval'});
+    }
+});
+
+// New endpoint for verifying email
+userRouter.get('/verifyEmail', async (req, res) => {
+    const { token } = req.query;
+
+    // Retrieve existing users
+    let users = storeUsers.get('users') || [];
+
+    // Find user with the given token
+    const userIndex = users.findIndex(user => user.verificationToken === token);
+
+    if (userIndex === -1) {
+        return res.status(404).json({message:'Invalid or expired verification link'});
+    }
+
+    // Set isVerified to true
+    users[userIndex].isVerified = true;
+
+    // Remove the verification token as it's no longer needed
+    delete users[userIndex].verificationToken;
+
+    // Store updated users array
+    storeUsers.put('users', users);
+
+    res.json({message:'Email verified successfully. You can now log in.'});
+});
+
+userRouter.post('/login', async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        // Retrieve existing users
+        let users = storeUsers.get('users') || [];
+
+        // Find user by email
+        const user = users.find(user => user.email === email);
+
+        if (!user) {
+            return res.status(404).json({message:'User not found'});
+        }
+
+        // Check if email is verified
+        if (!user.isVerified) {
+            return res.status(401).json({message:'Email not verified'});
+        }
+
+        // Verify password
+        const isMatch = await bcrypt.compare(password, user.hashedPassword);
+        if (!isMatch) {
+            return res.status(401).json({message: 'Invalid password'});
+        }
+        if (isMatch) {
+            res.json({ message: 'Login successful', isAdmin: user.admin });
+        }
+        // res.send('Login successful');}
+
+    } catch (error) {
+        res.status(401).json({ message: 'Invalid credentials' });
+    }
+});
+
+// infoRouter.route('/search')
+//     .get((req, res) => {
+//         const { name, Race, Power, Publisher } = req.query;
+//         let results = superhero_info;
+
+//         if (name) {
+//             results = results.filter(hero => hero.name.toLowerCase().startsWith(name.toLowerCase()));
+//         }
+
+//         if (Race) {
+//             results = results.filter(hero => hero.Race && hero.Race.toLowerCase().startsWith(Race.toLowerCase()));
+//         }
+
+//         if (Power) {
+//             results = results.filter(hero => {
+//                 const heroPowers = superhero_powers.find(p => p.hero_names === hero.name);
+//                 return heroPowers && heroPowers[Power] && heroPowers[Power].toLowerCase() === "true";
+//             });
+//         }
+
+//         if (Publisher) {
+//             results = results.filter(hero => hero.Publisher && hero.Publisher.toLowerCase().startsWith(Publisher.toLowerCase()));
+//         }
+
+//         // Return only name and publisher of each hero
+//         results = results.map(hero => ({ name: hero.name, Publisher: hero.Publisher }));
+
+//         res.json(results);
+//     });
+
+
+infoRouter.route('/search')
+    .get((req, res) => {
+        const { name, Race, Publisher } = req.query;
+        let Power = req.query['Power '] || req.query['Power'];
+
+        // Decode URI components and trim whitespace
+        Power = Power ? decodeURIComponent(Power).trim().toLowerCase() : null;
+        const queryName = name ? decodeURIComponent(name).trim().toLowerCase() : null;
+        const queryRace = Race ? decodeURIComponent(Race).trim().toLowerCase() : null;
+        const queryPublisher = Publisher ? decodeURIComponent(Publisher).trim().toLowerCase() : null;
+
+        let results = superhero_info;
+
+        if (queryName) {
+            results = results.filter(hero => hero.name.toLowerCase().trim().startsWith(queryName));
+        }
+
+        if (queryRace) {
+            results = results.filter(hero => hero.Race && hero.Race.toLowerCase().trim().startsWith(queryRace));
+        }
+
+        if (queryPublisher) {
+            results = results.filter(hero => hero.Publisher && hero.Publisher.toLowerCase().trim().startsWith(queryPublisher));
+        }
+
+        if (Power) {
+            results = results.filter(hero => {
+                // Trim and lowercase the hero name for accurate matching
+                const heroNameLower = hero.name.toLowerCase().trim();
+                const heroPowers = superhero_powers.find(p => p.hero_names.toLowerCase().trim() === heroNameLower);
+                // Check for the power, making the comparison case-insensitive
+                return heroPowers && Object.entries(heroPowers).some(([key, value]) => 
+                    key.toLowerCase().trim() === Power && String(value).toLowerCase() === "true");
+            });
+        }
+
+        // Return only name and publisher of each hero
+        results = results.map(hero => ({ name: hero.name.trim(), Publisher: hero.Publisher.trim() }));
+
+        res.json(results);
+    });
+
+
+
+    
+// Mount the users router
 app.use('/api/superhero_info', infoRouter);
 app.use('/api/superhero_powers', powersRouter);
 app.use('/api/superhero_lists', listRouter);
+app.use('/api/users', userRouter);
 
 app.listen(port, () => {
+    initializeAdminUser();
     console.log(`Listening on port ${port}`);
 });
 
