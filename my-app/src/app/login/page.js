@@ -18,56 +18,115 @@ export default function NewPage() {
     });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault(); // Prevents the default form submission behavior
+//   const handleSubmit = async (e) => {
+//     e.preventDefault(); // Prevents the default form submission behavior
 
-    try {
-        const response = await fetch('http://localhost:8080/api/users/login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                email: formData.email,
-                password: formData.password
-            })
-        });
+//     try {
+//         const response = await fetch('http://localhost:8080/api/users/login', {
+//             method: 'POST',
+//             headers: {
+//                 'Content-Type': 'application/json'
+//             },
+//             body: JSON.stringify({
+//                 email: formData.email,
+//                 password: formData.password
+//             })
+//         });
 
-        try {
-            const data = await response.json();
-            if (response.ok) {
-              if (data.isAdmin) {
-                  // Redirect to admin page
-                  window.location.href = 'http://localhost:3000/admin';
-              } else {
-                  // Redirect to user page
-                  window.location.href = 'http://localhost:3000/user';
-              }
-          } else {
-                  alert(data.message); // Show error message from the server's JSON response
-            }
-        } catch (jsonError) {
-            if (jsonError instanceof SyntaxError) {
-                // Handle non-JSON response here
-                if (response.ok) {
+//         try {
+//             const data = await response.json();
+//             if (response.ok) {
+//               if (data.isAdmin) {
+//                   // Redirect to admin page
+//                   window.location.href = 'http://localhost:3000/admin';
+//               } else {
+//                   // Redirect to user page
+//                   window.location.href = 'http://localhost:3000/user';
+//               }
+//           } else {
+//                   alert(data.message); // Show error message from the server's JSON response
+//             }
+//         } catch (jsonError) {
+//             if (jsonError instanceof SyntaxError) {
+//                 // Handle non-JSON response here
+//                 if (response.ok) {
                   
-                    alert("Login successful");
-                } else {
-                    // Handle other server-side validations
-                    console.error('Non-JSON error:', jsonError);
-                    console.log(jsonError)
-                }
-            } else {
-                throw jsonError; // Rethrow other errors
-            }
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        alert(`Error logging in: ${error.message}`);
-        console.log(error)
+//                     alert("Login successful");
+//                 } else {
+//                     // Handle other server-side validations
+//                     console.error('Non-JSON error:', jsonError);
+//                     console.log(jsonError)
+//                 }
+//             } else {
+//                 throw jsonError; // Rethrow other errors
+//             }
+//         }
+//     } catch (error) {
+//         console.error('Error:', error);
+//         alert(`Error logging in: ${error.message}`);
+//         console.log(error)
 
+//     }
+// };
+
+const handleSubmit = async (e) => {
+  e.preventDefault(); // Prevents the default form submission behavior
+
+  try {
+    const response = await fetch('http://localhost:8080/api/users/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        email: formData.email,
+        password: formData.password
+      })
+    });
+
+    const data = await response.json();
+    if (response.ok) {
+      // Store the token in local storage or session storage
+      localStorage.setItem('userToken', data.token); // assuming the token is returned in data.token
+
+      if (data.isAdmin) {
+        // Redirect to admin page
+        window.location.href = 'http://localhost:3000/admin';
+      } else {
+        // Redirect to user page
+        window.location.href = 'http://localhost:3000/user';
+      }
+    } else {
+      alert(data.message); // Show error message from the server's JSON response
     }
+  } catch (error) {
+    console.error('Error:', error);
+    alert(`Error logging in: ${error.message}`);
+  }
 };
+
+
+const handleCreateList = async () => {
+  const token = localStorage.getItem('userToken');
+  if (!token) {
+    alert('You must be logged in to create a list');
+    return;
+  }
+
+  try {
+    await axios.post(
+      'http://localhost:8080/api/user_lists',
+      { name: listName, ID: [], isPublic: false },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    alert('List created successfully');
+    setListName('');
+  } catch (error) {
+    console.error('Error creating list:', error.response.data);
+    setError(error.response.data.message || 'Error creating list');
+  }
+};
+
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-24 bg-superhero-pattern">

@@ -1,1 +1,1 @@
-{"superhero_lists":[{"name":"s","ID":[2,3]},{"name":"1","ID":[2,3]},{"name":"10","ID":[]}]}
+{"superhero_lists":[{"name":"list1","ID":[1,2],"createdBy":"liyan@example.com","creatorNickname":"liyan","lastModified":"2023-11-26T06:46:45.400Z","isPublic":true},{"name":"testlist","ID":[],"createdBy":"test@uwo.ca","creatorNickname":"lab4","lastModified":"2023-11-26T07:35:29.114Z","isPublic":false}]}
