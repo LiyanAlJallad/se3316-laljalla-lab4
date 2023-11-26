@@ -188,4 +188,114 @@ h1 {
   margin-bottom: 20px; /* Adjust spacing between fields */
 }
 
+/* Add these styles for the "Show Details" button */
+.show-details-button {
+  background-color: blue;
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
 
+.show-details-button:hover {
+  background-color: darkblue;
+}
+
+
+.button-spacing {
+  width: 15px; /* Adjust the spacing as needed */
+}
+
+.show-details-button.disabled {
+  background-color: grey;
+  cursor: not-allowed;
+}
+
+/* Enhanced hover effect for enabled "Show Details" button */
+.show-details-button:not(.disabled):hover {
+  background-color: darkblue;
+}
+
+/* Styling adjustment for the button layout */
+.search-container {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Adds spacing between elements */
+}
+
+.results-details-container {
+  display: flex;
+  gap: 20px; /* Spacing between results and details */
+}
+
+.search-results-frame {
+  border: 1px solid #ccc; /* Frame around search results */
+  padding: 10px;
+  max-width: 500px; 
+  overflow: auto; /* For scrolling if content is too long */
+}
+
+.result-item {
+  cursor: pointer;
+  padding: 5px;
+}
+
+.result-item.selected {
+  background-color: lightblue; /* Highlight for selected item */
+}
+
+.hero-details-panel {
+  border: 1px solid #ccc; 
+  padding: 10px;
+  max-width: 500px; 
+  overflow: auto; 
+}
+
+.public-lists-container {
+  width: 100%;
+  max-width: 600px;
+  margin: 20px auto;
+}
+
+.public-list-item {
+  background-color: rgba(255, 255, 255, 0.8);
+  border-radius: 8px;
+  margin-bottom: 15px;
+  padding: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.list-header {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.arrow-icon {
+  display: inline-block;
+  width: 20px;
+  text-align: center;
+  transition: transform 0.3s ease;
+}
+
+.arrow-icon.expanded {
+  transform: rotate(90deg);
+}
+
+.list-details {
+  margin-top: 10px;
+  padding-left: 20px;
+  border-top: 1px solid #ccc;
+}
+
+
+.list-header {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.list-info {
+  margin-left: 10px; /* Add space between arrow icon and list info */
+}
