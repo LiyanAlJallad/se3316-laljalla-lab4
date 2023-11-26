@@ -4,6 +4,8 @@ const fs = require('fs').promises;
 const Storage = require('node-storage')
 const cors = require('cors');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+
 
 const crypto = require('crypto');
 
@@ -11,6 +13,19 @@ const crypto = require('crypto');
 function generateVerificationToken() {
     return crypto.randomBytes(16).toString('hex');
 }
+const authenticateToken = (req, res, next) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+
+    if (token == null) return res.sendStatus(401);
+
+    jwt.verify(token, 'your_secret_key', (err, user) => {
+        if (err) return res.sendStatus(403);
+        req.user = user;
+        next();
+    });
+};
+
 
 function initializeAdminUser() {
     let users = storeUsers.get('users') || [];
@@ -36,6 +51,8 @@ function initializeAdminUser() {
 
 const storeLists = new Storage(path.join(__dirname,'storeLists.json'));
 const storeUsers = new Storage(path.join(__dirname,'users.json'));  
+const usersLists = new Storage(path.join(__dirname,'storeLists.json'));
+
 
 
 const app = express();
@@ -46,6 +63,8 @@ const infoRouter = express.Router();
 const powersRouter = express.Router();
 const listRouter = express.Router();
 const userRouter = express.Router();
+const userListRouter = express.Router();
+
 
 // File paths
 const infoFilePath = 'server\\superhero_info.json';
@@ -476,7 +495,10 @@ userRouter.post('/login', async (req, res) => {
             return res.status(401).json({message: 'Invalid password'});
         }
         if (isMatch) {
-            res.json({ message: 'Login successful', isAdmin: user.admin });
+            // res.json({ message: 'Login successful', isAdmin: user.admin });
+            const token = jwt.sign({ email: user.email, nickname: user.nickname }, 'your_secret_key', { expiresIn: '1h' });
+            res.json({ message: 'Login successful', token, isAdmin: user.admin });
+
         }
         // res.send('Login successful');}
 
@@ -549,12 +571,119 @@ infoRouter.route('/details/:name')
 
 
 
+    function getUserDetailsByEmail(email) {
+        const users = storeUsers.get('users') || [];
+        return users.find(user => user.email === email);
+    }
+    
+    // Function to calculate average rating (placeholder implementation)
+    function calculateAverageRating(heroIDs) {
+        // Placeholder: Replace with actual logic to calculate average rating
+        return heroIDs.length ? 4.5 : 0; // Example rating
+    }
+    
+    userListRouter.route('/')
+        .get((req, res) => {
+            // Sort lists by last-modified date
+            const sortedLists = superhero_lists.sort((a, b) => new Date(b.lastModified) - new Date(a.lastModified));
+    
+            // Map to required structure
+            const listsToShow = sortedLists.map(list => ({
+                name: list.name,
+                creatorNickname: list.creatorNickname,
+                numberOfHeroes: list.ID.length,
+                averageRating: calculateAverageRating(list.ID),
+                lastModified: list.lastModified,
+                isPublic: list.isPublic
+            }));
+    
+            res.send(listsToShow);
+        })
+        userListRouter.post('/', authenticateToken, (req, res) => {
+            const { name, ID, isPublic } = req.body;
+        
+            if (!req.user) {
+                return res.status(403).send('User not authenticated');
+            }
+        
+            const userEmail = req.user.email; // Email of the logged-in user
+        
+            // Check if a list with the same name already exists for the same user
+            const existingList = superhero_lists.find(list => list.name === name && list.createdBy === userEmail);
+        
+            if (existingList) {
+                return res.status(400).send('A list with the same name already exists.');
+            }
+        
+            const newList = {
+                name,
+                ID: ID || [],
+                createdBy: userEmail,
+                creatorNickname: req.user.nickname, // Assuming nickname is also available in req.user
+                lastModified: new Date().toISOString(),
+                isPublic,
+                // Additional properties as needed
+            };
+        
+            superhero_lists.push(newList);
+            storeLists.put('superhero_lists', superhero_lists);
+        
+            res.status(201).send('List created successfully.');
+        });
+    
+    userListRouter.get('/:listName/details', (req, res) => {
+    const { listName } = req.params;
+    const list = superhero_lists.find(l => l.name === listName);
+
+    if (!list) {
+        return res.status(404).send('List not found');
+    }
+
+    // Get details for each superhero in the list
+    const listDetails = list.ID.map(heroId => {
+        const superhero = superhero_info.find(s => s.id === heroId);
+        if (!superhero) return null; // or handle this case as you see fit
+
+        const powers = superhero_powers.find(p => p.hero_names === superhero.name);
+        const truePowers = powers ? Object.fromEntries(Object.entries(powers).filter(([_, hasPower]) => hasPower === "True")) : {};
+
+        return { ...superhero, powers: truePowers };
+    }).filter(detail => detail !== null); // Filter out any null values
+
+    res.json({ listName: list.name, details: listDetails });
+});
+
+
+userListRouter.get('/:listName/details', (req, res) => {
+    const { listName } = req.params;
+    const list = superhero_lists.find(l => l.name === listName);
+
+    if (!list) {
+        return res.status(404).send('List not found');
+    }
+
+    // Get details for each superhero in the list
+    const listDetails = list.ID.map(heroId => {
+        const superhero = superhero_info.find(s => s.id === heroId);
+        if (!superhero) return null; // or handle this case as you see fit
+
+        const powers = superhero_powers.find(p => p.hero_names === superhero.name);
+        const truePowers = powers ? Object.fromEntries(Object.entries(powers).filter(([_, hasPower]) => hasPower === "True")) : {};
+
+        return { ...superhero, powers: truePowers };
+    }).filter(detail => detail !== null); // Filter out any null values
+
+    res.json({ listName: list.name, details: listDetails });
+});
+
+
     
 // Mount the users router
 app.use('/api/superhero_info', infoRouter);
 app.use('/api/superhero_powers', powersRouter);
 app.use('/api/superhero_lists', listRouter);
 app.use('/api/users', userRouter);
+app.use('/api/user_lists', userListRouter);
 
 app.listen(port, () => {
     initializeAdminUser();
