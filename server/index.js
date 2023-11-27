@@ -726,6 +726,21 @@ userListRouter.put('/updateList', authenticateToken, async (req, res) => {
     }
 });
 
+userListRouter.put('/updatePublicStatus', authenticateToken, (req, res) => {
+    const { listName, isPublic } = req.body;
+    const userEmail = req.user.email;
+    const listIndex = superhero_lists.findIndex(list => list.name === listName && list.createdBy === userEmail);
+
+    if (listIndex >= 0) {
+        superhero_lists[listIndex].isPublic = isPublic;
+        storeLists.put('superhero_lists', superhero_lists);
+        res.send({ message: `List ${listName} public status updated to ${isPublic}` });
+    } else {
+        res.status(404).send('List not found or not authorized to modify this list');
+    }
+});
+
+
 
 
     

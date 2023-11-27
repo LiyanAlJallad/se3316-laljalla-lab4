@@ -11,6 +11,8 @@ export default function UserPage() {
     const [selectedList, setSelectedList] = useState('');
     const [selectedHeroes, setSelectedHeroes] = useState([]);
     const [error, setError] = useState('');
+    const [isPublic, setIsPublic] = useState(false); // New state for tracking public status
+
     
 
 
@@ -54,7 +56,7 @@ export default function UserPage() {
         try {
             await axios.post(
                 'http://localhost:8080/api/user_lists',
-                { name: listName, ID: [], isPublic: false },
+                { name: listName, ID: [], isPublic: isPublic }, // Use isPublic state here
                 { headers: { Authorization: `Bearer ${token}` } }
             );
             setListName('');
@@ -84,10 +86,11 @@ export default function UserPage() {
                 headers: { Authorization: `Bearer ${token}` }
             });
     
-            // Update the list with new superhero IDs
+            // Update the list with new superhero IDs and isPublic status
             await axios.put('http://localhost:8080/api/user_lists/updateList', {
                 listName: selectedList,
-                newIDs: idsResponse.data
+                newIDs: idsResponse.data,
+                isPublic: isPublic // Include the isPublic state
             }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
@@ -96,20 +99,46 @@ export default function UserPage() {
             setSelectedHeroes([]);
             fetchUserLists();
             setError('');
-            alert('Superheroes added successfully');
+            alert('Superheroes and public status updated successfully');
         } catch (error) {
             setError('Failed to add superheroes to list. ' + (error.response?.data?.message || error.message));
         }
-    
     };
 
+
+    const handlePublicStatusToggle = async () => {
+        if (!selectedList) {
+            setError('Please select a list.');
+            return;
+        }
+        const token = localStorage.getItem('token');
+        if (!token) {
+            setError('You must be logged in to modify a list');
+            return;
+        }
+        try {
+            const selectedListData = lists.find(list => list.name === selectedList);
+            const newPublicStatus = !selectedListData.isPublic;
+
+            await axios.put('http://localhost:8080/api/user_lists/updatePublicStatus', {
+                listName: selectedList,
+                isPublic: newPublicStatus
+            }, { headers: { Authorization: `Bearer ${token}` } });
+
+            fetchUserLists(); // Refresh the lists
+            setError('');
+            alert(`List "${selectedList}" is now ${newPublicStatus ? 'public' : 'private'}.`);
+        } catch (error) {
+            setError('Failed to update list public status. ' + (error.response?.data?.message || error.message));
+        }
+    };
 
 
     return (
         <div>
             <h1>User Page</h1>
             {error && <p style={{ color: 'red' }}>{error}</p>}
-
+    
             <h2>Create a New List</h2>
             <input
                 type="text"
@@ -118,13 +147,14 @@ export default function UserPage() {
                 placeholder="List Name"
             />
             <button onClick={handleCreateList}>Create List</button>
-
+    
             <h2>Your Lists</h2>
             <ul>
                 {lists.map((list, index) => (
                     <li key={index}>{list.name}</li>
                 ))}
             </ul>
+    
             <h2>Add Superheroes to a List</h2>
             <select value={selectedList} onChange={(e) => setSelectedList(e.target.value)}>
                 <option value="">Select List</option>
@@ -132,17 +162,26 @@ export default function UserPage() {
                     <option key={list.name} value={list.name}>{list.name}</option>
                 ))}
             </select>
-
+    
+            {selectedList && (
+                <button onClick={handlePublicStatusToggle}>
+                    Toggle Public Status
+                </button>
+            )}
+    
             <select multiple value={selectedHeroes} onChange={(e) => setSelectedHeroes([...e.target.selectedOptions].map(option => option.value))}>
                 {superheroes.map((hero) => (
                     <option key={hero} value={hero}>{hero}</option>
                 ))}
             </select>
             <button onClick={handleAddHeroesToList}>Add to List</button>
-
         </div>
     );
-}
+    }
+
+
+
+
 
 
 
