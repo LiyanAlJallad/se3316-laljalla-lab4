@@ -62,6 +62,7 @@ export default function HomePage() {
 
     const fetchPublicLists = async () => {
         try {
+            
             const response = await axios.get('http://localhost:8080/api/user_lists');
             const publicListsData = response.data
                 .filter(list => list.isPublic) // Filter for public lists

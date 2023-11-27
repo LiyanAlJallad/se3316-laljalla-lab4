@@ -17,15 +17,20 @@ const authenticateToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 
-    if (token == null) return res.sendStatus(401);
+    if (token == null) {
+        console.log('No token provided');
+        return res.sendStatus(401);
+    }
 
     jwt.verify(token, 'your_secret_key', (err, user) => {
-        if (err) return res.sendStatus(403);
+        if (err) {
+            console.log('Token verification failed:', err);
+            return res.sendStatus(403);
+        }
         req.user = user;
         next();
     });
 };
-
 
 function initializeAdminUser() {
     let users = storeUsers.get('users') || [];
@@ -105,7 +110,12 @@ app.use((req, res, next) => {
     next();
 });
 app.use(cors());
+app.use(cors({
+  exposedHeaders: ['Authorization'],
+}));
+
 let superhero_lists = storeLists.get('superhero_lists') || [];
+
 
 // Routes for superhero_info
 infoRouter.route('/')
@@ -675,6 +685,47 @@ userListRouter.get('/:listName/details', (req, res) => {
 
     res.json({ listName: list.name, details: listDetails });
 });
+
+userListRouter.get('/mylists', authenticateToken, (req, res) => {
+    // Extract email from the authenticated user details
+    const userEmail = req.user.email;
+
+    // Filter lists to include only those created by the authenticated user
+    const userLists = superhero_lists.filter(list => list.createdBy === userEmail);
+
+    // Respond with the user's lists
+    res.json(userLists);
+
+    if (userLists.length === 0) {
+        return res.status(404).json({ message: 'No lists found for this user.' });
+    }
+    
+
+});
+
+// In userListRouter
+
+userListRouter.put('/updateList', authenticateToken, async (req, res) => {
+    const { listName, newIDs } = req.body; // Assuming newIDs is an array of superhero IDs
+    const userEmail = req.user.email;
+
+    const list = superhero_lists.find(list => list.name === listName && list.createdBy === userEmail);
+    if (!list) {
+        return res.status(404).json({ message: 'List not found or unauthorized access' });
+    }
+
+    // Update the list with new superhero IDs
+    list.ID = [...new Set([...list.ID, ...newIDs])]; // Remove duplicates if any
+
+    try {
+        storeLists.put('superhero_lists', superhero_lists);
+        res.json({ message: 'List updated successfully', list });
+    } catch (error) {
+        console.error('Error updating list:', error);
+        res.status(500).json({ message: 'Error updating list' });
+    }
+});
+
 
 
     
