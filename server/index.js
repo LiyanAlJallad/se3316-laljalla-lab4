@@ -517,13 +517,64 @@ userRouter.post('/login', async (req, res) => {
     }
 });
 
+// function stringDifference(str1, str2) {
+//     let diff = 0;
+//     const length = Math.max(str1.length, str2.length);
+
+//     for (let i = 0; i < length; i++) {
+//         if (str1[i] !== str2[i]) diff++;
+//     }
+
+//     return diff;
+// }
+function stringDifference(str1, str2) {
+    let diff = 0;
+    let i = 0, j = 0;
+
+    while (i < str1.length && j < str2.length) {
+        if (str1[i] !== str2[j]) {
+            diff++;
+            // Check next character in longer string
+            if (str1.length > str2.length) {
+                i++;
+            } else if (str1.length < str2.length) {
+                j++;
+            } else {
+                i++;
+                j++;
+            }
+        } else {
+            i++;
+            j++;
+        }
+    }
+
+    // Add remaining characters from the longer string
+    diff += Math.max(str1.length - i, str2.length - j);
+
+    return diff;
+}
+
 
 infoRouter.route('/search')
+    // .get((req, res) => {
+    //     const { name, Race, Publisher } = req.query;
+    //     let Power = req.query['Power '] || req.query['Power'];
     .get((req, res) => {
         const { name, Race, Publisher } = req.query;
         let Power = req.query['Power '] || req.query['Power'];
 
         // Decode URI components and trim whitespace
+        // Power = Power ? decodeURIComponent(Power).trim().toLowerCase() : null;
+        // const queryName = name ? decodeURIComponent(name).trim().toLowerCase() : null;
+        // const queryRace = Race ? decodeURIComponent(Race).trim().toLowerCase() : null;
+        // const queryPublisher = Publisher ? decodeURIComponent(Publisher).trim().toLowerCase() : null;
+
+        // let results = superhero_info;
+
+        // if (queryName) {
+        //     results = results.filter(hero => hero.name.toLowerCase().trim().startsWith(queryName));
+        // }
         Power = Power ? decodeURIComponent(Power).trim().toLowerCase() : null;
         const queryName = name ? decodeURIComponent(name).trim().toLowerCase() : null;
         const queryRace = Race ? decodeURIComponent(Race).trim().toLowerCase() : null;
@@ -532,8 +583,12 @@ infoRouter.route('/search')
         let results = superhero_info;
 
         if (queryName) {
-            results = results.filter(hero => hero.name.toLowerCase().trim().startsWith(queryName));
+            results = results.filter(hero => {
+                const heroNameLower = hero.name.toLowerCase().trim();
+                return heroNameLower === queryName || stringDifference(heroNameLower, queryName) <= 2;
+            });
         }
+
 
         if (queryRace) {
             results = results.filter(hero => hero.Race && hero.Race.toLowerCase().trim().startsWith(queryRace));
