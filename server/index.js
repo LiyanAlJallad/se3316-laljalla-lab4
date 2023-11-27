@@ -740,6 +740,26 @@ userListRouter.put('/updatePublicStatus', authenticateToken, (req, res) => {
     }
 });
 
+userListRouter.delete('/:listName', authenticateToken, (req, res) => {
+    const { listName } = req.params;
+    const userEmail = req.user.email;
+
+    const listIndex = superhero_lists.findIndex(list => list.name === listName && list.createdBy === userEmail);
+
+    if (listIndex === -1) {
+        return res.status(404).send('List not found or not authorized to delete this list');
+    }
+
+    superhero_lists.splice(listIndex, 1);
+
+    try {
+        storeLists.put('superhero_lists', superhero_lists);
+        res.send({ message: `List ${listName} deleted successfully` });
+    } catch (error) {
+        console.error('Error deleting list:', error);
+        res.status(500).send('Error deleting list');
+    }
+});
 
 
 

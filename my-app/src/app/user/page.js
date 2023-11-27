@@ -133,7 +133,70 @@ export default function UserPage() {
         }
     };
 
+    const handleDeleteList = async (listName) => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            setError('You must be logged in to delete a list');
+            return;
+        }
+    
+        try {
+            await axios.delete(`http://localhost:8080/api/user_lists/${listName}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            fetchUserLists(); // Refresh the lists after deletion
+            setError('');
+            alert(`List "${listName}" deleted successfully`);
+        } catch (error) {
+            setError('Error deleting list. ' + (error.response?.data?.message || error.message));
+        }
+    };
+    
 
+
+    // return (
+    //     <div>
+    //         <h1>User Page</h1>
+    //         {error && <p style={{ color: 'red' }}>{error}</p>}
+    
+    //         <h2>Create a New List</h2>
+    //         <input
+    //             type="text"
+    //             value={listName}
+    //             onChange={(e) => setListName(e.target.value)}
+    //             placeholder="List Name"
+    //         />
+    //         <button onClick={handleCreateList}>Create List</button>
+    
+    //         <h2>Your Lists</h2>
+    //         <ul>
+    //             {lists.map((list, index) => (
+    //                 <li key={index}>{list.name}</li>
+    //             ))}
+    //         </ul>
+    
+    //         <h2>Add Superheroes to a List</h2>
+    //         <select value={selectedList} onChange={(e) => setSelectedList(e.target.value)}>
+    //             <option value="">Select List</option>
+    //             {lists.map((list) => (
+    //                 <option key={list.name} value={list.name}>{list.name}</option>
+    //             ))}
+    //         </select>
+    
+    //         {selectedList && (
+    //             <button onClick={handlePublicStatusToggle}>
+    //                 Toggle Public Status
+    //             </button>
+    //         )}
+    
+    //         <select multiple value={selectedHeroes} onChange={(e) => setSelectedHeroes([...e.target.selectedOptions].map(option => option.value))}>
+    //             {superheroes.map((hero) => (
+    //                 <option key={hero} value={hero}>{hero}</option>
+    //             ))}
+    //         </select>
+    //         <button onClick={handleAddHeroesToList}>Add to List</button>
+    //     </div>
+    // );
     return (
         <div>
             <h1>User Page</h1>
@@ -164,9 +227,14 @@ export default function UserPage() {
             </select>
     
             {selectedList && (
-                <button onClick={handlePublicStatusToggle}>
-                    Toggle Public Status
-                </button>
+                <>
+                    <button onClick={handlePublicStatusToggle}>
+                        Toggle Public Status
+                    </button>
+                    <button onClick={() => handleDeleteList(selectedList)}>
+                        Delete List
+                    </button>
+                </>
             )}
     
             <select multiple value={selectedHeroes} onChange={(e) => setSelectedHeroes([...e.target.selectedOptions].map(option => option.value))}>
@@ -177,6 +245,7 @@ export default function UserPage() {
             <button onClick={handleAddHeroesToList}>Add to List</button>
         </div>
     );
+    
     }
 
 
