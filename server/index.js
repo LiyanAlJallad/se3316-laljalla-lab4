@@ -696,30 +696,31 @@ infoRouter.route('/details/:name')
             res.status(201).send('List created successfully.');
         });
     
+        userListRouter.get('/:listName/authDetails', authenticateToken, (req, res) => {
+            const { listName } = req.params;
+            const userEmail = req.user.email; // Email of the authenticated user
+            const superhero_lists = storeLists.get('superhero_lists') || [];
+        
+            const list = superhero_lists.find(l => l.name === listName && l.createdBy === userEmail);
+        
+            if (!list) {
+                return res.status(404).send('List not found or not authorized to access this list');
+            }
+        
+            const listDetails = list.ID.map(heroId => {
+                const superhero = superhero_info.find(s => s.id === heroId);
+                if (!superhero) return null;
+        
+                const powers = superhero_powers.find(p => p.hero_names === superhero.name);
+                const truePowers = powers ? Object.fromEntries(Object.entries(powers).filter(([_, hasPower]) => hasPower === "True")) : {};
+        
+                return { ...superhero, powers: truePowers };
+            }).filter(detail => detail !== null);
+        
+            res.json({ listName: list.name, details: listDetails });
+        });
+        
     userListRouter.get('/:listName/details', (req, res) => {
-    const { listName } = req.params;
-    const list = superhero_lists.find(l => l.name === listName);
-
-    if (!list) {
-        return res.status(404).send('List not found');
-    }
-
-    // Get details for each superhero in the list
-    const listDetails = list.ID.map(heroId => {
-        const superhero = superhero_info.find(s => s.id === heroId);
-        if (!superhero) return null; // or handle this case as you see fit
-
-        const powers = superhero_powers.find(p => p.hero_names === superhero.name);
-        const truePowers = powers ? Object.fromEntries(Object.entries(powers).filter(([_, hasPower]) => hasPower === "True")) : {};
-
-        return { ...superhero, powers: truePowers };
-    }).filter(detail => detail !== null); // Filter out any null values
-
-    res.json({ listName: list.name, details: listDetails });
-});
-
-
-userListRouter.get('/:listName/details', (req, res) => {
     const { listName } = req.params;
     const list = superhero_lists.find(l => l.name === listName);
 
@@ -773,8 +774,12 @@ userListRouter.put('/updateList', authenticateToken, async (req, res) => {
     list.ID = [...new Set([...list.ID, ...newIDs])]; // Remove duplicates if any
 
     try {
+        list.numberOfHeroes = list.ID.length;
+
         storeLists.put('superhero_lists', superhero_lists);
         res.json({ message: 'List updated successfully', list });
+        
+
     } catch (error) {
         console.error('Error updating list:', error);
         res.status(500).json({ message: 'Error updating list' });
