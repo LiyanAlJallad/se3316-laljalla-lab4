@@ -7,12 +7,20 @@ function AdminPage() {
   const [selectedUserEmail, setSelectedUserEmail] = useState('');
   const [error, setError] = useState('');
 
+  const [lists, setLists] = useState([]);
+  const [selectedList, setSelectedList] = useState('');
+  const [selectedReview, setSelectedReview] = useState('');
+  const [reviewVisibility, setReviewVisibility] = useState(true); // true if visible, false if hidden
+
 
   const [isUserDeactivated, setIsUserDeactivated] = useState(false);
 
 
+
   useEffect(() => {
     fetchNonAdminUsers();
+    fetchLists();
+
   }, []);
 
   const fetchNonAdminUsers = async () => {
@@ -86,6 +94,62 @@ function AdminPage() {
 
 
 
+  const fetchLists = async () => {
+    try {
+      const response = await axios.get('http://localhost:8080/api/user_lists/revAndID');
+      setLists(response.data);
+    } catch (error) {
+      setError('Failed to fetch lists. ' + error.message);
+      console.error('Error fetching lists:', error);
+    }
+  };
+  const handleListSelect = (e) => {
+    setSelectedList(e.target.value);
+  };
+
+
+  const toggleReviewVisibility = async () => {
+    const storedToken = localStorage.getItem('token');
+    if (!storedToken) {
+      setError('Authentication required to perform this action.');
+      return;
+    }
+
+    const selectedListName = lists.find(list => list.id === selectedReview)?.listName;
+
+    if (!selectedListName || !selectedReview) {
+      setError('Select a list and a review to toggle visibility.');
+      return;
+    }
+
+    const endpoint = reviewVisibility
+      ? `http://localhost:8080/api/user_lists/${selectedListName}/reviews/hide`
+      : `http://localhost:8080/api/user_lists/${selectedListName}/reviews/unhide`;
+
+    try {
+      const response = await axios.put(
+        endpoint,
+        { listName: selectedListName, id: selectedReview },
+        { headers: { Authorization: `Bearer ${storedToken}` } }
+      );
+
+      if (response.status === 200) {
+        alert(response.data.message);
+        setReviewVisibility(!reviewVisibility); // Toggle the visibility state
+      }
+    } catch (error) {
+      setError(`Error toggling review visibility: ${error.message}`);
+      console.error('Error toggling review visibility:', error);
+    }
+  };
+
+  const handleReviewSelect = (e) => {
+    setSelectedReview(e.target.value);
+    // Assuming the review is visible by default when selected
+    setReviewVisibility(true);
+  };
+
+
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-xl font-bold mb-4">Admin Dashboard</h1>
@@ -123,8 +187,30 @@ function AdminPage() {
           {isUserDeactivated ? 'Reactivate User' : 'Deactivate User'}
         </button>
       </div>
-  
-
+      <div>
+      <h2>Review Management</h2>
+        <div className="flex items-center mb-4">
+          <select
+            value={selectedReview}
+            onChange={handleReviewSelect}
+            className="border border-gray-300 rounded p-2 mr-2"
+          >
+            <option value="">Select a review</option>
+            {lists.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.listName} - {item.id}
+              </option>
+            ))}
+          </select>
+          <button
+            onClick={toggleReviewVisibility}
+            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+            disabled={!selectedReview}
+          >
+            Toggle Review Visibility
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
