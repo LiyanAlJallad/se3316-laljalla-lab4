@@ -1033,6 +1033,27 @@ userRouter.put('/reactivateUser', authenticateToken, async (req, res) => {
 });
 
 
+userListRouter.route('/revAndID')
+.get((req, res) => {
+    // Retrieve all lists
+    const allLists = storeLists.get('superhero_lists') || [];
+
+    // Flatten the structure to get a simple array of objects with listName and uuid
+    let listsWithReviewUUIDs = [];
+    allLists.forEach(list => {
+        if (list.reviews && list.reviews.length > 0) {
+            list.reviews.forEach(review => {
+                listsWithReviewUUIDs.push({
+                    listName: list.name,
+                    id: review.id // Assuming each review has an 'id' property that is the UUID
+                });
+            });
+        }
+    });
+
+    res.json(listsWithReviewUUIDs);
+});
+
 // Mount the users router
 app.use('/api/superhero_info', infoRouter);
 app.use('/api/superhero_powers', powersRouter);
