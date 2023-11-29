@@ -149,47 +149,50 @@ function AdminPage() {
     setReviewVisibility(true);
   };
 
-
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-xl font-bold mb-4">Admin Dashboard</h1>
-      {error && <div className="mb-4 text-red-600">{error}</div>}
-  
-      {/* Existing UI elements for granting admin privileges */}
-      <div>
-           <h2>User Management</h2>
-        <select
-          value={selectedUserEmail}
-          onChange={handleUserSelect}
-          className="border border-gray-300 rounded p-2 mb-4"
-        >
-          <option value="">Select a user</option>
-          {users.map((userEmail) => (
-            <option key={userEmail} value={userEmail}>
-              {userEmail}
-            </option>
-          ))}
-        </select>
-        <button
-          onClick={grantAdminPrivileges}
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 mr-2"
-          disabled={!selectedUserEmail}
-        >
-          Grant Admin Privileges
-        </button>
-        <button
-          onClick={toggleUserActivation}
-          className={`${
-            isUserDeactivated ? 'bg-green-500' : 'bg-red-500'
-          } text-white px-4 py-2 rounded hover:bg-blue-600`}
-          disabled={!selectedUserEmail}
-        >
-          {isUserDeactivated ? 'Reactivate User' : 'Deactivate User'}
-        </button>
+    <div className="container mx-auto p-6 mt-10 bg-white shadow rounded-lg">
+      <h1 className="text-2xl font-semibold text-gray-800 mb-6">Admin Dashboard</h1>
+      {error && <div className="mb-4 p-4 bg-red-100 text-red-800 rounded">{error}</div>}
+
+      {/* User Management Section */}
+      <div className="mb-8">
+        <h2 className="text-xl font-bold text-gray-700 mb-4">User Management</h2>
+        <div className="flex flex-col space-y-4 md:flex-row md:items-center md:space-y-0 md:space-x-4">
+          <select
+            value={selectedUserEmail}
+            onChange={handleUserSelect}
+            className="border border-gray-300 rounded p-2"
+          >
+            <option value="">Select a user</option>
+            {users.map((userEmail) => (
+              <option key={userEmail} value={userEmail}>
+                {userEmail}
+              </option>
+            ))}
+          </select>
+          <button
+            onClick={grantAdminPrivileges}
+            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700 transition duration-300"
+            disabled={!selectedUserEmail}
+          >
+            Grant Admin Privileges
+          </button>
+          <button
+            onClick={toggleUserActivation}
+            className={`${
+              isUserDeactivated ? 'bg-green-500 hover:bg-green-700' : 'bg-red-500 hover:bg-red-700'
+            } text-white px-4 py-2 rounded transition duration-300`}
+            disabled={!selectedUserEmail}
+          >
+            {isUserDeactivated ? 'Reactivate User' : 'Deactivate User'}
+          </button>
+        </div>
       </div>
+
+      {/* Review Management Section */}
       <div>
-      <h2>Review Management</h2>
-        <div className="flex items-center mb-4">
+        <h2 className="text-xl font-bold text-gray-700 mb-4">Review Management</h2>
+        <div className="flex items-center">
           <select
             value={selectedReview}
             onChange={handleReviewSelect}
@@ -204,7 +207,7 @@ function AdminPage() {
           </select>
           <button
             onClick={toggleReviewVisibility}
-            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700 transition duration-300"
             disabled={!selectedReview}
           >
             Toggle Review Visibility
@@ -213,6 +216,8 @@ function AdminPage() {
       </div>
     </div>
   );
+
 }
+
 
 export default AdminPage;
