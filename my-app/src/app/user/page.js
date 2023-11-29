@@ -52,12 +52,6 @@
 //     const fetchUserLists = async () => {
 //         const token = localStorage.getItem('token');
 //         if (token) {
-//             // try {
-//             //     const response = await axios.get('http://localhost:8080/api/user_lists/mylists', {
-//             //         headers: { Authorization: `Bearer ${token}` }
-//             //     });
-//             //     setLists(response.data);
-//             // } catch (error) {
 //             try {
 //                 const response = await axios.get('http://localhost:8080/api/user_lists/mylists', {
 //                     headers: { Authorization: `Bearer ${token}` }
@@ -70,10 +64,7 @@
 //                 setSelectedHeroes([]); 
            
 //             }
-//         }
-//         // console.log('Updated lists:', response.data);
-//         // setLists(response.data.filter(list => list.name && list.numberOfHeroes != null));
-    
+//         }    
 //     };
     
 //     const fetchSuperheroes = async () => {
@@ -136,11 +127,8 @@
 //                 return list;
 //             });
     
-//             setLists(updatedLists);
+//             setLists(updatedLists);  
 
-            
-
-    
 //             // Update the list with new superhero IDs and isPublic status
 //             await axios.put('http://localhost:8080/api/user_lists/updateList', {
 //                 listName: selectedList,
@@ -244,7 +232,8 @@
 //                     <div>
 //                     <h3 className="font-medium">{list.name || 'Unnamed List'}</h3>
 //                         <p>Creator: {list.creatorNickname}</p>
-//                         <p>Number of Heroes: {list.numberOfHeroes}</p>
+//                         <p>Number of Heroes: 
+//                             {list.numberOfHeroes}</p>
 //                         <p>Average Rating: {list.averageRating?.toFixed(1)}</p>
 //                     </div>
 //                     <span className={`transform transition-transform ${expandedListName === list.name ? 'rotate-90' : ''}`}>
@@ -270,7 +259,7 @@
 
     
 //                 <section>
-//                     <h2 className="text-lg font-semibold">Add Superheroes to a List</h2>
+//                     <h2 className="text-lg font-semibold">Select A List</h2>
 //                     <select className="w-full p-2 border border-gray-300 rounded" value={selectedList} onChange={(e) => setSelectedList(e.target.value)}>
 //                         <option value="">Select List</option>
 //                         {lists.map((list) => (
@@ -286,11 +275,13 @@
 //                             <button className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded flex-grow" onClick={() => handleDeleteList(selectedList)}>
 //                                 Delete List
 //                             </button>
+                            
 //                         </div>
 //                     )}
 //                 </section>
     
 //                 <section>
+//                 <h2 className="text-lg font-semibold">Add Superheros</h2>
 //                     <div className="mt-2">
 //                         <select multiple className="w-full h-36 p-2 border border-gray-300 rounded" value={selectedHeroes} onChange={(e) => setSelectedHeroes([...e.target.selectedOptions].map(option => option.value))}>
 //                             {superheroes.map((hero) => (
@@ -304,7 +295,6 @@
 //         </div>
 //     );
 // }
-
 
 
 
@@ -322,8 +312,11 @@ export default function UserPage() {
     const [isPublic, setIsPublic] = useState(false); 
     const [expandedListName, setExpandedListName] = useState(null);
     const [updateTrigger, setUpdateTrigger] = useState(0); 
+    const [reviewRating, setReviewRating] = useState(0);
+    const [reviewComment, setReviewComment] = useState('');
+    const [existingReview, setExistingReview] = useState({ rating: 0, comment: '' });
 
-    
+
 
     const handleSelectList = async (listName) => {
         if (expandedListName === listName) {
@@ -350,6 +343,30 @@ export default function UserPage() {
             console.error('Error fetching list details:', error);
             setError('Failed to fetch list details. ' + (error.response?.data?.message || error.message));
         }
+        const userEmail = localStorage.getItem('userEmail'); // Replace with the actual way of obtaining user's email
+        if (userEmail) {
+            fetchExistingReview(listName, userEmail);
+        }
+
+    
+    };
+
+    // Function to fetch existing review for the selected list
+    const fetchExistingReview = async (listName, userEmail) => {
+        const response = await axios.get(`http://localhost:8080/api/user_lists/${listName}/authDetails`, {
+            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+
+        const userReview = response.data.reviews?.find(review => review.userEmail === userEmail);
+        if (userReview) {
+            setExistingReview({ rating: userReview.rating, comment: userReview.comment });
+            setReviewRating(userReview.rating);
+            setReviewComment(userReview.comment);
+        } else {
+            setExistingReview({ rating: 0, comment: '' });
+            setReviewRating(0);
+            setReviewComment('');
+        }
     };
 
 
@@ -362,12 +379,6 @@ export default function UserPage() {
     const fetchUserLists = async () => {
         const token = localStorage.getItem('token');
         if (token) {
-            // try {
-            //     const response = await axios.get('http://localhost:8080/api/user_lists/mylists', {
-            //         headers: { Authorization: `Bearer ${token}` }
-            //     });
-            //     setLists(response.data);
-            // } catch (error) {
             try {
                 const response = await axios.get('http://localhost:8080/api/user_lists/mylists', {
                     headers: { Authorization: `Bearer ${token}` }
@@ -380,10 +391,7 @@ export default function UserPage() {
                 setSelectedHeroes([]); 
            
             }
-        }
-        // console.log('Updated lists:', response.data);
-        // setLists(response.data.filter(list => list.name && list.numberOfHeroes != null));
-    
+        }    
     };
     
     const fetchSuperheroes = async () => {
@@ -446,11 +454,8 @@ export default function UserPage() {
                 return list;
             });
     
-            setLists(updatedLists);
+            setLists(updatedLists);  
 
-            
-
-    
             // Update the list with new superhero IDs and isPublic status
             await axios.put('http://localhost:8080/api/user_lists/updateList', {
                 listName: selectedList,
@@ -520,6 +525,73 @@ export default function UserPage() {
             setError('Error deleting list. ' + (error.response?.data?.message || error.message));
         }
     };
+
+    // const postReview = async () => {
+    //     const token = localStorage.getItem('token');
+    //     if (!token) {
+    //         setError('You must be logged in to post a review');
+    //         return;
+    //     }
+    //     if (!selectedList) {
+    //         setError('Please select a list to review.');
+    //         return;
+    //     }
+    //     try {
+    //         // Post the review
+    //         await axios.post(
+    //             `http://localhost:8080/api/user_lists/${selectedList}/reviews`,
+    //             { rating: reviewRating, comment: reviewComment },
+    //             { headers: { Authorization: `Bearer ${token}` } }
+    //         );
+    
+    //         // Fetch the updated lists, including the one that was just reviewed
+    //         const updatedListsResponse = await axios.get('http://localhost:8080/api/user_lists/mylists', {
+    //             headers: { Authorization: `Bearer ${token}` }
+    //         });
+    
+    //         // Update the lists state with the new data
+    //         setLists(updatedListsResponse.data);
+    
+    //         // Reset form fields and show success message
+    //         setReviewRating(0);
+    //         setReviewComment('');
+    //         setError('');
+    //         alert('Review posted successfully');
+    //     } catch (error) {
+    //         setError('Error posting review. ' + (error.response?.data?.message || error.message));
+    //     }
+    // };
+    const postReview = async () => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            setError('You must be logged in to post a review');
+            return;
+        }
+        if (!selectedList) {
+            setError('Please select a list to review.');
+            return;
+        }
+        try {
+            await axios.post(
+                `http://localhost:8080/api/user_lists/${selectedList}/reviews`,
+                { rating: reviewRating, comment: reviewComment },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+
+            // Fetch the updated lists with new ratings
+            await fetchUserLists(); // Refresh the lists state with the updated data
+
+            setReviewRating(0);
+            setReviewComment('');
+            setError('');
+            alert('Review posted successfully');
+        } catch (error) {
+            setError('Error posting review. ' + (error.response?.data?.message || error.message));
+        }
+    };
+    
+    
+    
  
     return (
         <div key={updateTrigger} className="user-page-container bg-white rounded-lg shadow p-6 max-w-md mx-auto my-8">
@@ -539,28 +611,24 @@ export default function UserPage() {
                     <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full mt-2" onClick={handleCreateList}>Create List</button>
                 </section>
     
-    <section>
-
-        <h2 className="text-lg font-semibold">Your Lists</h2>
-        {lists
-        .filter(list => list.name) // Filter out any lists without a name
-        .sort((a, b) => new Date(b.lastModified) - new Date(a.lastModified))
-        .map((list, index) => (
-            <div key={index} className="mb-2">
-                <div 
-                    onClick={() => handleSelectList(list.name)}
-                    className="flex justify-between items-center bg-gray-100 p-2 rounded cursor-pointer hover:bg-gray-200"
-                >
-                    <div>
-                    <h3 className="font-medium">{list.name || 'Unnamed List'}</h3>
-                        <p>Creator: {list.creatorNickname}</p>
-                        <p>Number of Heroes: {list.numberOfHeroes}</p>
-                        <p>Average Rating: {list.averageRating?.toFixed(1)}</p>
+                <section>
+            <h2 className="text-lg font-semibold">Your Lists</h2>
+            {lists
+            .filter(list => list.name)
+            .sort((a, b) => new Date(b.lastModified) - new Date(a.lastModified))
+            .map((list, index) => (
+                <div key={index} className="mb-2">
+                    <div onClick={() => handleSelectList(list.name)} className="flex justify-between items-center bg-gray-100 p-2 rounded cursor-pointer hover:bg-gray-200">
+                        <div>
+                            <h3 className="font-medium">{list.name || 'Unnamed List'}</h3>
+                            <p>Creator: {list.creatorNickname}</p>
+                            <p>Number of Heroes: {list.numberOfHeroes}</p>
+                            <p>Rating: {list.averageRating !== null && list.averageRating !== undefined ? list.averageRating.toFixed(1) : 'Not Rated'}</p>
+                        </div>
+                        <span className={`transform transition-transform ${expandedListName === list.name ? 'rotate-90' : ''}`}>
+                            &gt;
+                        </span>
                     </div>
-                    <span className={`transform transition-transform ${expandedListName === list.name ? 'rotate-90' : ''}`}>
-                        &gt;
-                    </span>
-                </div>
                 {expandedListName === list.name && (
                             <div className="mt-2 bg-gray-50 p-2 rounded">
                                 <h3>List Details:</h3>
@@ -580,7 +648,7 @@ export default function UserPage() {
 
     
                 <section>
-                    <h2 className="text-lg font-semibold">Add Superheroes to a List</h2>
+                    <h2 className="text-lg font-semibold">Select A List</h2>
                     <select className="w-full p-2 border border-gray-300 rounded" value={selectedList} onChange={(e) => setSelectedList(e.target.value)}>
                         <option value="">Select List</option>
                         {lists.map((list) => (
@@ -596,11 +664,13 @@ export default function UserPage() {
                             <button className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded flex-grow" onClick={() => handleDeleteList(selectedList)}>
                                 Delete List
                             </button>
+                            
                         </div>
                     )}
                 </section>
     
                 <section>
+                <h2 className="text-lg font-semibold">Add Superheros</h2>
                     <div className="mt-2">
                         <select multiple className="w-full h-36 p-2 border border-gray-300 rounded" value={selectedHeroes} onChange={(e) => setSelectedHeroes([...e.target.selectedOptions].map(option => option.value))}>
                             {superheroes.map((hero) => (
@@ -610,7 +680,49 @@ export default function UserPage() {
                     </div>
                     <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full mt-2" onClick={handleAddHeroesToList}>Add to List</button>
                 </section>
+
+                <section>
+    <h2 className="text-lg font-semibold">Post a Review for a List</h2>
+    <div>
+        <select
+            className="w-full p-2 border border-gray-300 rounded mb-2"
+            value={selectedList}
+            onChange={(e) => setSelectedList(e.target.value)}
+        >
+            <option value="">Select List</option>
+            {lists.map((list) => (
+                <option key={list.name} value={list.name}>{list.name}</option>
+            ))}
+        </select>
+
+        <input
+            type="number"
+            min="1"
+            max="5"
+            placeholder="Rating (1-5)"
+            className="w-full p-2 border border-gray-300 rounded mb-2"
+            value={reviewRating}
+            onChange={(e) => setReviewRating(e.target.value)}
+        />
+
+        <textarea
+            placeholder="Comment"
+            className="w-full p-2 border border-gray-300 rounded mb-2"
+            value={reviewComment}
+            onChange={(e) => setReviewComment(e.target.value)}
+        ></textarea>
+
+        <button
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full"
+            onClick={postReview}
+        >
+            Post Review
+        </button>
+    </div>
+</section>
+
             </div>
         </div>
     );
 }
+

@@ -5,6 +5,8 @@ const Storage = require('node-storage')
 const cors = require('cors');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const { v4: uuidv4 } = require('uuid');
+
 
 
 const crypto = require('crypto');
@@ -44,7 +46,9 @@ function initializeAdminUser() {
             hashedPassword: hashedAdminPassword,
             nickname: 'Admin',
             isVerified: true,
-            admin: true
+            admin: true,
+            isDeactivated: false
+            
         });
 
         storeUsers.put('users', users);
@@ -378,7 +382,8 @@ userRouter.post('/register', async (req, res) => {
             nickname, 
             isVerified: false, 
             verificationToken,
-            admin: isAdmin // Set admin flag
+            admin: isAdmin,
+            isDeactivated: false
         });
 
         storeUsers.put('users', users);
@@ -499,6 +504,10 @@ userRouter.post('/login', async (req, res) => {
             return res.status(401).json({message:'Email not verified'});
         }
 
+        if (user.isDeactivated) {
+            return res.status(403).json({ message: 'Account is deactivated. Please contact admin at admin@uwo.ca' });
+        }
+    
         // Verify password
         const isMatch = await bcrypt.compare(password, user.hashedPassword);
         if (!isMatch) {
@@ -687,7 +696,7 @@ infoRouter.route('/details/:name')
                 creatorNickname: req.user.nickname, // Assuming nickname is also available in req.user
                 lastModified: new Date().toISOString(),
                 isPublic,
-                // Additional properties as needed
+                reviews: [] 
             };
         
             superhero_lists.push(newList);
@@ -738,6 +747,18 @@ infoRouter.route('/details/:name')
 
         return { ...superhero, powers: truePowers };
     }).filter(detail => detail !== null); // Filter out any null values
+
+
+
+
+    if (!isAdminUser(req.user.email)) {
+        listDetails.forEach(detail => {
+            if (detail.reviews) {
+                detail.reviews = detail.reviews.filter(review => review.visible);
+            }
+        });
+    }
+
 
     res.json({ listName: list.name, details: listDetails });
 });
@@ -822,8 +843,196 @@ userListRouter.delete('/:listName', authenticateToken, (req, res) => {
 });
 
 
+const listReviews = new Storage(path.join(__dirname, 'listReviews.json'));
 
+userListRouter.post('/:listName/reviews', authenticateToken, (req, res) => {
+    const { listName } = req.params;
+    const { rating, comment } = req.body;
+    const userEmail = req.user.email;
+
+    // Check for valid rating
+    if (!rating || rating < 1 || rating > 5) {
+        return res.status(400).send('Rating must be between 1 and 5.');
+    }
+
+    // Find the list
+    const list = superhero_lists.find(list => list.name === listName);
+    if (!list) {
+        return res.status(404).send('List not found');
+    }
+ 
+
+    // Find existing review by the user
+    const existingReviewIndex = list.reviews.findIndex(review => review.userEmail === userEmail);
+
+    if (existingReviewIndex >= 0) {
+        // Update existing review
+        list.reviews[existingReviewIndex].rating = rating;
+        list.reviews[existingReviewIndex].comment = comment;
+        list.reviews[existingReviewIndex].createdAt = new Date().toISOString();
+    } else {
+        // Add a new review
+        const newReview = {
+            id: uuidv4(), 
+            userEmail,
+            rating,
+            comment,
+            visible: true,
+            createdAt: new Date().toISOString()
+            
+        };
+        list.reviews.push(newReview);
+    }
+
+    // Update the list in the storage
+    storeLists.put('superhero_lists', superhero_lists);
+
+    res.status(201).send('Review added/updated successfully.');
+});
+
+
+
+userRouter.get('/nonAdminUsers', (req, res) => {
+    let users = storeUsers.get('users') || [];
+    // Filter out only non-admin users
+    const nonAdminUsers = users.filter(user => !user.admin).map(({email}) => email);
     
+    res.json(nonAdminUsers);
+});
+
+
+
+
+const isAdminUser = (email) => {
+    const users = storeUsers.get('users') || [];
+    const user = users.find(user => user.email === email);
+    return user && user.admin;
+};
+
+
+
+// Endpoint to grant admin privileges
+userRouter.put('/grantAdmin', authenticateToken, async (req, res) => {
+    const adminEmail = req.user.email;
+
+    // Check if the requester is an admin
+    if (!isAdminUser(adminEmail)) {
+        return res.status(403).json({ message: 'Only admins can perform this action' });
+    }
+
+    const { userEmail } = req.body;
+
+    let users = storeUsers.get('users') || [];
+    const userIndex = users.findIndex(user => user.email === userEmail);
+
+    if (userIndex === -1) {
+        return res.status(404).json({ message: 'User not found' });
+    }
+
+    users[userIndex].admin = true; // Grant admin privileges
+    storeUsers.put('users', users);
+
+    res.json({ message: `Admin privileges granted to ${userEmail}` });
+});
+
+   
+
+
+
+
+
+// Endpoint to hide a review
+userListRouter.put('/:listName/reviews/hide', authenticateToken, async (req, res) => {
+    const { listName, id } = req.body; // Assuming each review has a unique ID
+    const adminEmail = req.user.email;
+
+    if (!isAdminUser(adminEmail)) {
+        return res.status(403).json({ message: 'Only admins can perform this action' });
+    }
+
+    const list = superhero_lists.find(list => list.name === listName);
+    if (!list) {
+        return res.status(404).json({ message: 'List not found' });
+    }
+
+    const reviewIndex = list.reviews.findIndex(review => review.id === id); // Assuming reviews have an 'id' property
+    if (reviewIndex === -1) {
+        return res.status(404).json({ message: 'Review not found' });
+    }
+
+    list.reviews[reviewIndex].visible = false; // Hide the review
+    storeLists.put('superhero_lists', superhero_lists);
+
+    res.json({ message: 'Review hidden successfully' });
+});
+
+// Endpoint to unhide a review
+userListRouter.put('/:listName/reviews/unhide', authenticateToken, async (req, res) => {
+    const { listName, id } = req.body;
+    const adminEmail = req.user.email;
+
+    if (!isAdminUser(adminEmail)) {
+        return res.status(403).json({ message: 'Only admins can perform this action' });
+    }
+
+    const list = superhero_lists.find(list => list.name === listName);
+    if (!list) {
+        return res.status(404).json({ message: 'List not found' });
+    }
+
+    const reviewIndex = list.reviews.findIndex(review => review.id === id);
+    if (reviewIndex === -1) {
+        return res.status(404).json({ message: 'Review not found' });
+    }
+
+    list.reviews[reviewIndex].visible = true; // Unhide the review
+    storeLists.put('superhero_lists', superhero_lists);
+
+    res.json({ message: 'Review visibility restored' });
+});
+
+
+
+
+userRouter.put('/deactivateUser', authenticateToken, async (req, res) => {
+    if (!isAdminUser(req.user.email)) {
+        return res.status(403).json({ message: 'Only admins can perform this action' });
+    }
+
+    const { userEmail } = req.body;
+    let users = storeUsers.get('users') || [];
+    const userIndex = users.findIndex(user => user.email === userEmail);
+
+    if (userIndex === -1) {
+        return res.status(404).json({ message: 'User not found' });
+    }
+
+    users[userIndex].isDeactivated = true;
+    storeUsers.put('users', users);
+
+    res.json({ message: `User account ${userEmail} has been deactivated.` });
+});
+
+userRouter.put('/reactivateUser', authenticateToken, async (req, res) => {
+    if (!isAdminUser(req.user.email)) {
+        return res.status(403).json({ message: 'Only admins can perform this action' });
+    }
+
+    const { userEmail } = req.body;
+    let users = storeUsers.get('users') || [];
+    const userIndex = users.findIndex(user => user.email === userEmail);
+
+    if (userIndex === -1) {
+        return res.status(404).json({ message: 'User not found' });
+    }
+
+    users[userIndex].isDeactivated = false;
+    storeUsers.put('users', users);
+
+    res.json({ message: `User account ${userEmail} has been reactivated.` });
+});
+
+
 // Mount the users router
 app.use('/api/superhero_info', infoRouter);
 app.use('/api/superhero_powers', powersRouter);
