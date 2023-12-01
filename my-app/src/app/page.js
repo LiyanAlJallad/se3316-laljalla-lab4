@@ -17,6 +17,18 @@ export default function HomePage() {
     const [selectedList, setSelectedList] = useState(null);
     const [expandedListName, setExpandedListName] = useState(null);
 
+    const [expandedHero, setExpandedHero] = useState(null);
+    const [infoHeroDetails, setInfoHeroDetails] = useState(null);
+
+
+    const toggleExpandHero = (index) => {
+        if (expandedHero === index) {
+            setExpandedHero(null); // Collapse if it's already expanded
+        } else {
+            setExpandedHero(index); // Expand the clicked hero
+        }
+    };
+    
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -94,9 +106,33 @@ export default function HomePage() {
     };
 
 
+
+    const fetchHeroDetails = async (heroName) => {
+        try {
+            const response = await axios.get(`http://localhost:8080/api/superhero_info/details/${heroName}`);
+            setInfoHeroDetails(response.data);
+        } catch (error) {
+            console.error('Error fetching hero details:', error);
+        }
+    };
+    
     return (
-        <main className="home-container">
-            <h1>Welcome to Superhero Portal</h1>
+        <main className="home-container bg-gray-100 p-6">
+            <div className="header-container text-center">
+                <h1 className="text-2xl font-bold mb-4">Welcome to Superhero Portal</h1>
+                <h3 className="text-1xl font-italic mb-4">This website allows users to search for and manage superhero lists, offering features like authentication and administrative controls.</h3>
+                <div className="button-container inline-block">
+                    <a href="http://localhost:3000/login" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-4">
+                        Login
+                    </a>
+                    <a href="http://localhost:3000/createAcc" className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+                        Create Account
+                    </a>
+                </div>
+            </div>
+
+            <div className="content-container mt-10">             
+            {/* <h1>Welcome to Superhero Portal</h1> */}
             <div className="search-container">
                 <input 
                     type="text"
@@ -172,7 +208,7 @@ export default function HomePage() {
 
             {heroDetails && (
                 <div className="hero-details-panel">
-                    <h2>Details of {heroDetails.details.name}</h2>
+                    {/* <h2>Details of {heroDetails.name}</h2> */}
                     <div>
                         <h3>General Information:</h3>
                         <ul>
@@ -192,7 +228,9 @@ export default function HomePage() {
                 </div>
             )}
             </div>
-            <div className="public-lists-container">
+
+<div className="flex">
+<div className="public-lists-container flex-grow">
             <h2>Public Lists</h2>
             {publicLists.map((list, index) => (
     <div key={index} className="public-list-item">
@@ -202,16 +240,17 @@ export default function HomePage() {
                 <h3>{list.name}</h3>
                 <p>Creator: {list.creatorNickname}</p>
                 <p>Number of Heroes: {list.numberOfHeroes}</p>
-                <p>Average Rating: {list.averageRating.toFixed(1)}</p>
+                <p>Rating: {list.averageRating.toFixed(1)}</p>
             </div>
         </div>
                     {expandedListName === list.name && selectedList && (
                         <div className="list-details">
                             <ul>
-                                {selectedList.details.map((hero, idx) => (
-                                    <li key={idx}>
-                                        <h4>{hero.name}</h4>
-                                        <p>Powers: {Object.keys(hero.powers).join(', ')}</p>
+                            {selectedList.details.map((hero, idx) => (
+                <li key={idx}>
+                    <h4>{hero.name} - {' '}
+                        <a onClick={() => fetchHeroDetails(hero.name)} style={{ fontWeight: 'bold', cursor: 'pointer', color: 'blue' }}>Info                        </a>.                                         </h4>
+                                        {/* <p>Powers: {Object.keys(hero.powers).join(', ')}</p> */}
                                         {/* Additional hero details can be listed here */}
                                     </li>
                                 ))}
@@ -221,9 +260,36 @@ export default function HomePage() {
                 </div>
             ))}
         </div>
+        <div className="info-hero-details-panel" style={{ width: '250px', marginLeft: '20px' }}>
+                    {infoHeroDetails && (
+                        <div className="info-details-content bg-white p-4 rounded shadow">
+                            {<h2>Details</h2>}
+            {/* <h2>Details of {infoHeroDetails.details.name}</h2> */}
+            <div>
+                <h3>General Information:</h3>
+                <ul>
+                    {Object.entries(infoHeroDetails.details).map(([key, value]) => (
+                        <li key={key}>{key}: {value}</li>
+                    ))}
+                </ul>
+            </div>
+            <div>
+                <h3>Powers:</h3>
+                <ul>
+                    {Object.entries(infoHeroDetails.powers).map(([power, hasPower]) => (
+                        hasPower === "True" && <li key={power}>{power}</li>
+                    ))}
+                </ul>
+            </div>
+        </div>
+    )}
+</div>
 
+        </div>
+        </div>
 
     </main>
     );
 }
+
 

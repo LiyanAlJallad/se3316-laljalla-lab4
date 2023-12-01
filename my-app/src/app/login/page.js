@@ -10,6 +10,55 @@ export default function NewPage() {
     email: '',
     password: ''
   });
+ 
+  const resendVerificationEmail = async (email) => {
+    try {
+        const response = await fetch('http://localhost:8080/api/users/resendVerification', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email })
+        });
+  
+        const data = await response.json();
+        if (response.ok) {
+          <div>
+          Please{' '}
+          <a href="#" onClick={() => handleVerify(data.verificationToken)} style={{ fontWeight: 'bold', color: 'blue', textDecoration: 'underline' }}>verify</a> your account to login.
+      </div>
+
+            // alert('Verification email resent. Please check your email.');
+        } else {
+            // alert('Failed to resend verification email: ' + data.message);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error resending verification email: ' + error.message);
+    }
+  }
+  
+  const handleVerify = async (token) => {
+    try {
+        const verifyResponse = await fetch(`http://localhost:8080/api/users/verifyEmail?token=${token}`, {
+            method: 'GET',
+        });
+        if (verifyResponse.ok) {
+            setVerificationMessage(
+                <div>
+                    <span style={{ fontWeight: 'bold', color: 'green' }}>Account successfully verified.</span>
+                    {' '}
+                    <a href="http://localhost:3000/login" style={{ fontWeight: 'bold', color: 'blue', textDecoration: 'underline' }}>Login</a>.                      
+                    <br />
+                </div>
+            );
+        } else {
+            setVerificationMessage('Failed to verify account. Please try again.');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
 
   // Function to update state on input change
   const handleInputChange = (e) => {
@@ -44,8 +93,17 @@ export default function NewPage() {
               } else {
                   // Redirect to user page
                   window.location.href = 'http://localhost:3000/user';
+                  
               }
-          } else {
+          } 
+          if (data.message === 'Email not verified') {
+            if (window.confirm("Your account is not verified. Would you like to recieve the verification link again?")) {
+                // Implement the resend verification logic here
+                
+                await resendVerificationEmail(formData.email);
+            }
+          }
+          else {
               alert(data.message); // Show error message from the server's JSON response
           }
           
@@ -63,6 +121,7 @@ export default function NewPage() {
             } else {
                 throw jsonError; // Rethrow other errors
             }
+            
         }
     } catch (error) {
         console.error('Error:', error);
@@ -70,7 +129,10 @@ export default function NewPage() {
         console.log(error)
 
     }
+
+    
 };
+
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-24 bg-superhero-pattern">

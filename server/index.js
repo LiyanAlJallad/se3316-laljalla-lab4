@@ -57,7 +57,6 @@ function initializeAdminUser() {
 
 
 
-
 const storeLists = new Storage(path.join(__dirname,'storeLists.json'));
 const storeUsers = new Storage(path.join(__dirname,'users.json'));  
 const usersLists = new Storage(path.join(__dirname,'storeLists.json'));
@@ -526,16 +525,6 @@ userRouter.post('/login', async (req, res) => {
     }
 });
 
-// function stringDifference(str1, str2) {
-//     let diff = 0;
-//     const length = Math.max(str1.length, str2.length);
-
-//     for (let i = 0; i < length; i++) {
-//         if (str1[i] !== str2[i]) diff++;
-//     }
-
-//     return diff;
-// }
 function stringDifference(str1, str2) {
     let diff = 0;
     let i = 0, j = 0;
@@ -566,24 +555,11 @@ function stringDifference(str1, str2) {
 
 
 infoRouter.route('/search')
-    // .get((req, res) => {
-    //     const { name, Race, Publisher } = req.query;
-    //     let Power = req.query['Power '] || req.query['Power'];
+
     .get((req, res) => {
         const { name, Race, Publisher } = req.query;
         let Power = req.query['Power '] || req.query['Power'];
 
-        // Decode URI components and trim whitespace
-        // Power = Power ? decodeURIComponent(Power).trim().toLowerCase() : null;
-        // const queryName = name ? decodeURIComponent(name).trim().toLowerCase() : null;
-        // const queryRace = Race ? decodeURIComponent(Race).trim().toLowerCase() : null;
-        // const queryPublisher = Publisher ? decodeURIComponent(Publisher).trim().toLowerCase() : null;
-
-        // let results = superhero_info;
-
-        // if (queryName) {
-        //     results = results.filter(hero => hero.name.toLowerCase().trim().startsWith(queryName));
-        // }
         Power = Power ? decodeURIComponent(Power).trim().toLowerCase() : null;
         const queryName = name ? decodeURIComponent(name).trim().toLowerCase() : null;
         const queryRace = Race ? decodeURIComponent(Race).trim().toLowerCase() : null;
@@ -709,9 +685,9 @@ infoRouter.route('/details/:name')
             const { listName } = req.params;
             const userEmail = req.user.email; // Email of the authenticated user
             const superhero_lists = storeLists.get('superhero_lists') || [];
-        
+            
             const list = superhero_lists.find(l => l.name === listName && l.createdBy === userEmail);
-        
+            
             if (!list) {
                 return res.status(404).send('List not found or not authorized to access this list');
             }
@@ -725,6 +701,11 @@ infoRouter.route('/details/:name')
         
                 return { ...superhero, powers: truePowers };
             }).filter(detail => detail !== null);
+            if (!listDetails){
+                return res.status(404).send('List not found or not authorized to access this list');
+            }
+
+
         
             res.json({ listName: list.name, details: listDetails });
         });
@@ -747,18 +728,6 @@ infoRouter.route('/details/:name')
 
         return { ...superhero, powers: truePowers };
     }).filter(detail => detail !== null); // Filter out any null values
-
-
-
-
-    if (!isAdminUser(req.user.email)) {
-        listDetails.forEach(detail => {
-            if (detail.reviews) {
-                detail.reviews = detail.reviews.filter(review => review.visible);
-            }
-        });
-    }
-
 
     res.json({ listName: list.name, details: listDetails });
 });
@@ -847,7 +816,7 @@ const listReviews = new Storage(path.join(__dirname, 'listReviews.json'));
 
 userListRouter.post('/:listName/reviews', authenticateToken, (req, res) => {
     const { listName } = req.params;
-    const { rating, comment } = req.body;
+    const { description, rating, comment } = req.body;
     const userEmail = req.user.email;
 
     // Check for valid rating
@@ -867,6 +836,7 @@ userListRouter.post('/:listName/reviews', authenticateToken, (req, res) => {
 
     if (existingReviewIndex >= 0) {
         // Update existing review
+        list.reviews[existingReviewIndex].description = description;
         list.reviews[existingReviewIndex].rating = rating;
         list.reviews[existingReviewIndex].comment = comment;
         list.reviews[existingReviewIndex].createdAt = new Date().toISOString();
@@ -875,6 +845,7 @@ userListRouter.post('/:listName/reviews', authenticateToken, (req, res) => {
         const newReview = {
             id: uuidv4(), 
             userEmail,
+            description,
             rating,
             comment,
             visible: true,
@@ -1052,6 +1023,21 @@ userListRouter.route('/revAndID')
     });
 
     res.json(listsWithReviewUUIDs);
+});
+
+userListRouter.get('/:listName/reviews', authenticateToken, (req, res) => {
+    const { listName } = req.params;
+    const userEmail = req.user.email; // Email of the authenticated user
+
+    const list = superhero_lists.find(list => list.name === listName);
+    if (!list) {
+        return res.status(404).send('List not found');
+    }
+
+    // Filter reviews by the authenticated user's email
+    const userReviews = list.reviews.filter(review => review.userEmail === userEmail);
+
+    res.json(userReviews);
 });
 
 // Mount the users router
