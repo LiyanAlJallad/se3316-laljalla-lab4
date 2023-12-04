@@ -60,6 +60,7 @@ function initializeAdminUser() {
 const storeLists = new Storage(path.join(__dirname,'storeLists.json'));
 const storeUsers = new Storage(path.join(__dirname,'users.json'));  
 const usersLists = new Storage(path.join(__dirname,'storeLists.json'));
+const storePolicies = new Storage(path.join(__dirname, 'policies.json'));
 
 
 
@@ -514,7 +515,10 @@ userRouter.post('/login', async (req, res) => {
         }
         if (isMatch) {
             // res.json({ message: 'Login successful', isAdmin: user.admin });
-            const token = jwt.sign({ email: user.email, nickname: user.nickname }, 'your_secret_key', { expiresIn: '1h' });
+            const token = jwt.sign({ 
+                email: user.email, 
+                nickname: user.nickname, 
+                admin: user.admin}, 'your_secret_key', { expiresIn: '1h' });
             res.json({ message: 'Login successful', token, isAdmin: user.admin });
 
         }
@@ -1038,6 +1042,79 @@ userListRouter.get('/:listName/reviews', authenticateToken, (req, res) => {
     const userReviews = list.reviews.filter(review => review.userEmail === userEmail);
 
     res.json(userReviews);
+});
+
+const isAdmin = (req, res, next) => {
+    // Assuming req.user is set in authenticateToken middleware
+    if (req.user && req.user.admin) {
+        next(); // Proceed if the user is an admin
+    } else {
+        res.status(403).json({ message: 'Access denied: Admin rights required.' });
+    }
+};
+app.post('/api/policies', authenticateToken, isAdmin, async (req, res) => {
+    try {
+        const { policyType, content } = req.body;
+
+        // Validate input
+        if (!policyType || !content) {
+            return res.status(400).json({ message: 'Missing policy type or content' });
+        }
+
+        // Load existing policies
+        const policies = storePolicies.get('policies') || {};
+        
+        // Update the specific policy content
+        policies[policyType] = content;
+
+        // Save updated policies
+        storePolicies.put('policies', policies);
+
+        res.status(201).json({ message: `Policy ${policyType} updated successfully.` });
+    } catch (error) {
+        console.error('Error updating policy:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+// Assuming Express app is set up
+
+app.get('/api/policies/:policyType', async (req, res) => {
+    const { policyType } = req.params;
+
+    try {
+        // Load policies from file or database
+        const policies = storePolicies.get('policies') || {};
+
+        // Check if the policy exists
+        if (policies[policyType]) {
+            res.json({ content: policies[policyType] });
+        } else {
+            res.status(404).json({ message: `Policy ${policyType} not found` });
+        }
+    } catch (error) {
+        console.error('Error fetching policy:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+
+userListRouter.get('/publicReviews', (req, res) => {
+    // Retrieve all lists
+    const allLists = storeLists.get('superhero_lists') || [];
+
+    // Filter for public lists and map to get their reviews
+    const publicReviews = allLists
+        .filter(list => list.isPublic)
+        .flatMap(list => list.reviews.map(review => ({
+            listName: list.name,
+            reviewId: review.id,
+            description: review.description,
+            rating: review.rating,
+            comment: review.comment,
+            visible: review.visible
+        })));
+
+    res.json(publicReviews);
 });
 
 // Mount the users router

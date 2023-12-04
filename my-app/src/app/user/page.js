@@ -338,8 +338,12 @@ export default function UserPage() {
                                             {list.reviews.map((review, idx) => (
                                                 <li key={idx}>
                                                     <p>Description: {review.description}</p>
-                                                    <p>Rating: {review.rating}</p>
-                                                    <p>Comment: {review.comment}</p>
+                                                    {review.visible && (
+                                                        <>
+                                                            <p>Rating: {review.rating}</p>
+                                                            <p>Comment: {review.comment}</p>
+                                                        </>
+                                                    )}
                                                 </li>
                                             ))}
                                         </ul>

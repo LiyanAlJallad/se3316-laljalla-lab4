@@ -10,11 +10,11 @@ function AdminPage() {
   const [lists, setLists] = useState([]);
   const [selectedList, setSelectedList] = useState('');
   const [selectedReview, setSelectedReview] = useState('');
-  const [reviewVisibility, setReviewVisibility] = useState(true); // true if visible, false if hidden
-
-
+  const [reviewVisibility, setReviewVisibility] = useState(true);
   const [isUserDeactivated, setIsUserDeactivated] = useState(false);
-
+  
+  const [selectedPolicyType, setSelectedPolicyType] = useState('');
+  const [policyContent, setPolicyContent] = useState('');
 
 
   useEffect(() => {
@@ -149,6 +149,41 @@ function AdminPage() {
     setReviewVisibility(true);
   };
 
+  const handlePolicyTypeSelect = (e) => {
+    setSelectedPolicyType(e.target.value);
+  };
+
+  const handlePolicyContentChange = (e) => {
+    setPolicyContent(e.target.value);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const storedToken = localStorage.getItem('token');
+    if (!storedToken) {
+      setError('Authentication required to perform this action.');
+      return;
+    }
+
+    try {
+      const response = await axios.post(
+        'http://localhost:8080/api/policies',
+        { policyType: selectedPolicyType, content: policyContent },
+        { headers: { Authorization: `Bearer ${storedToken}` } }
+      );
+
+      if (response.status === 201) {
+        alert('Policy updated successfully');
+        // Optionally reset form fields here
+      }
+    } catch (error) {
+      setError(`Error updating policy: ${error.message}`);
+      console.error('Error updating policy:', error);
+    }
+  };
+
+
+
   return (
     <div className="container mx-auto p-6 mt-10 bg-white shadow rounded-lg">
       <h1 className="text-2xl font-semibold text-gray-800 mb-6">Admin Dashboard</h1>
@@ -214,7 +249,39 @@ function AdminPage() {
           </button>
         </div>
       </div>
-    </div>
+
+      {/* Policy Management Section */}
+      <div className="mb-8">
+        <h2 className="text-xl font-bold text-gray-700 mb-4">Policy Management</h2>
+        <form onSubmit={handleSubmit}>
+          <div className="flex items-center space-x-4">
+            <select
+              value={selectedPolicyType}
+              onChange={handlePolicyTypeSelect}
+              className="border border-gray-300 rounded p-2"
+            >
+              <option value="">Select a Policy</option>
+              <option value="PrivacyPolicy">Security and Privacy Policy</option>
+              <option value="DMCA">DMCA Notice</option>
+              <option value="Takedown">Takedown Policy</option>
+              <option value="AcceptableUse">Acceptable Use Policy</option>
+            </select>
+            <textarea
+              value={policyContent}
+              onChange={handlePolicyContentChange}
+              className="border border-gray-300 rounded p-2"
+              placeholder="Enter policy content here..."
+            />
+            <button
+              type="submit"
+              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700 transition duration-300"
+            >
+              Update Policy
+            </button>
+          </div>
+        </form>
+      </div>
+       </div>
   );
 
 }

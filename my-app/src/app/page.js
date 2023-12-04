@@ -19,6 +19,8 @@ export default function HomePage() {
 
     const [expandedHero, setExpandedHero] = useState(null);
     const [infoHeroDetails, setInfoHeroDetails] = useState(null);
+    const [publicReviews, setPublicReviews] = useState([]);
+    const [expandedReviewsListName, setExpandedReviewsListName] = useState(null);
 
 
     const toggleExpandHero = (index) => {
@@ -30,6 +32,7 @@ export default function HomePage() {
     };
     
 
+    
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setSearch((prevSearch) => ({
@@ -70,7 +73,10 @@ export default function HomePage() {
     };
     useEffect(() => {
         fetchPublicLists();
+        fetchPublicReviews();
+
     }, []);
+
 
     const fetchPublicLists = async () => {
         try {
@@ -86,7 +92,15 @@ export default function HomePage() {
             console.error('Error fetching public lists:', error);
         }
         };
-
+        const fetchPublicReviews = async () => {
+            try {
+                const response = await axios.get('http://localhost:8080/api/user_lists/publicReviews');
+                setPublicReviews(response.data);
+            } catch (error) {
+                console.error('Error fetching public reviews:', error);
+            }
+        };
+        
 
     const handleSelectList = async (listName) => {
         if (expandedListName === listName) {
@@ -115,6 +129,15 @@ export default function HomePage() {
             console.error('Error fetching hero details:', error);
         }
     };
+
+    const toggleExpandReviews = (listName) => {
+        if (expandedReviewsListName === listName) {
+            setExpandedReviewsListName(null); // Collapse if already expanded
+        } else {
+            setExpandedReviewsListName(listName); // Expand the clicked list's reviews
+        }
+    };
+    
     
     return (
         <main className="home-container bg-gray-100 p-6">
@@ -231,6 +254,80 @@ export default function HomePage() {
 
 <div className="flex">
 <div className="public-lists-container flex-grow">
+                <h2>Public Lists</h2>
+                {publicLists.map((list, index) => (
+                    <div key={index} className="public-list-item">
+                        <div className="list-header" onClick={() => handleSelectList(list.name)}>
+                            <span className={`arrow-icon ${expandedListName === list.name ? 'expanded' : ''}`}>&gt;</span>
+                            <div className="list-info">
+                                <h3 style={{ fontWeight: 'bold'}}>List Info</h3>
+                                <h3>{list.name}</h3>
+                                <p>Creator: {list.creatorNickname}</p>
+
+                                {/* <h3>{list.Publisher}</h3> */}
+                                {expandedListName === list.name && (
+                            <div className="reviews-section">
+                                <ul>
+                                    {publicReviews.filter(review => review.listName === list.name).map((review, reviewIdx) => (
+                                        <li key={reviewIdx}>
+                                            <p>Description: {review.description}</p>
+                                            <h3 style={{ fontWeight: 'bold'}}>Reviews:</h3>
+                                            {review.visible && (
+                                                <>
+                                                    <p>Rating: {review.rating}</p>
+                                                    <p>Comment: {review.comment}</p>
+                                                </>
+                                            )}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+                                
+                            </div>
+
+                        </div>
+                        {expandedListName === list.name && selectedList && (
+                            <div className="list-details">
+                                {/* List Details */}
+                            </div>
+                        )}
+                        {/* {expandedListName === list.name && (
+                            <div className="reviews-section">
+                                <h4>Reviews:</h4>
+                                <ul>
+                                    {publicReviews.filter(review => review.listName === list.name).map((review, reviewIdx) => (
+                                        <li key={reviewIdx}>
+                                            <p>Description: {review.description}</p>
+                                            {review.visible && (
+                                                <>
+                                                    <p>Rating: {review.rating}</p>
+                                                    <p>Comment: {review.comment}</p>
+                                                </>
+                                            )}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )} */}
+   {expandedListName === list.name && selectedList && (
+                        <div className="list-details">
+                            <ul>
+                            {selectedList.details.map((hero, idx) => (
+                <li key={idx}>
+                    <h4>{hero.name} - {' '}
+                        <a onClick={() => fetchHeroDetails(hero.name)} style={{ fontWeight: 'bold', cursor: 'pointer', color: 'blue' }}>Info                        </a>.                                         </h4>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+                        
+                    </div>
+                ))}
+            </div>
+
+{/* <div className="public-lists-container flex-grow">
             <h2>Public Lists</h2>
             {publicLists.map((list, index) => (
     <div key={index} className="public-list-item">
@@ -240,8 +337,22 @@ export default function HomePage() {
                 <h3>{list.name}</h3>
                 <p>Creator: {list.creatorNickname}</p>
                 <p>Number of Heroes: {list.numberOfHeroes}</p>
-                <p>Rating: {list.averageRating.toFixed(1)}</p>
-            </div>
+            <div className="reviews-section">
+            <ul>
+                {publicReviews.map((review, reviewIdx) => (  
+            <li key={reviewIdx}>
+                <p>Description: {review.description}</p>
+                {review.visible && (
+                    <>
+                        <p>Rating: {review.rating}</p>
+                        <p>Comment: {review.comment}</p>
+                    </>
+                )}
+            </li>
+        ))}
+    </ul>
+    </div>
+    </div>
         </div>
                     {expandedListName === list.name && selectedList && (
                         <div className="list-details">
@@ -250,8 +361,6 @@ export default function HomePage() {
                 <li key={idx}>
                     <h4>{hero.name} - {' '}
                         <a onClick={() => fetchHeroDetails(hero.name)} style={{ fontWeight: 'bold', cursor: 'pointer', color: 'blue' }}>Info                        </a>.                                         </h4>
-                                        {/* <p>Powers: {Object.keys(hero.powers).join(', ')}</p> */}
-                                        {/* Additional hero details can be listed here */}
                                     </li>
                                 ))}
                             </ul>
@@ -259,7 +368,7 @@ export default function HomePage() {
                     )}
                 </div>
             ))}
-        </div>
+        </div> */}
         <div className="info-hero-details-panel" style={{ width: '250px', marginLeft: '20px' }}>
                     {infoHeroDetails && (
                         <div className="info-details-content bg-white p-4 rounded shadow">
