@@ -4,7 +4,7 @@ import axios from 'axios';
 
 export default function UserPage() {
     
-    const path ="ec2-54-237-246-157.compute-1.amazonaws.com";
+    const path ="ec2-54-81-209-77.compute-1.amazonaws.com";
 
     const [listName, setListName] = useState('');
     const [lists, setLists] = useState([]); // State to store user's lists
@@ -94,7 +94,7 @@ export default function UserPage() {
         const token = localStorage.getItem('token');
         if (token) {
             try {
-                const response = await axios.get('http://${path}:8080/api/user_lists/mylists', {
+                const response = await axios.get(`http://${path}:8080/api/user_lists/mylists`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 console.log('Lists fetched:', response.data); // Add this line to log the response
@@ -110,7 +110,7 @@ export default function UserPage() {
     
     const fetchSuperheroes = async () => {
         try {
-            const response = await axios.get('http://${path}:8080/api/superhero_info/allNames');
+            const response = await axios.get(`http://${path}:8080/api/superhero_info/allNames`);
             setSuperheroes(response.data);
         } catch (error) {
             setError('Failed to fetch superheroes. ' + (error.response?.data?.message || error.message));
@@ -128,7 +128,7 @@ export default function UserPage() {
 
         try {
             await axios.post(
-                'http://${path}:8080/api/user_lists',
+                `http://${path}:8080/api/user_lists`,
                 { name: listName, ID: [], isPublic: isPublic }, // Use isPublic state here
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -154,7 +154,7 @@ export default function UserPage() {
         try {
 
             // Convert superhero names to IDs
-            const idsResponse = await axios.post('http://${path}:8080/api/superhero_info/getIDs', {
+            const idsResponse = await axios.post(`http://${path}:8080/api/superhero_info/getIDs`, {
                 names: selectedHeroes
             }, {
                 headers: { Authorization: `Bearer ${token}` }
@@ -171,7 +171,7 @@ export default function UserPage() {
             setLists(updatedLists);  
 
             // Update the list with new superhero IDs and isPublic status
-            await axios.put('http://${path}:8080/api/user_lists/updateList', {
+            await axios.put(`http://${path}:8080/api/user_lists/updateList`, {
                 listName: selectedList,
                 newIDs: idsResponse.data,
                 isPublic: isPublic 
@@ -208,7 +208,7 @@ export default function UserPage() {
             const selectedListData = lists.find(list => list.name === selectedList);
             const newPublicStatus = !selectedListData.isPublic;
 
-            await axios.put('http://${path}:8080/api/user_lists/updatePublicStatus', {
+            await axios.put(`http://${path}:8080/api/user_lists/updatePublicStatus`, {
                 listName: selectedList,
                 isPublic: newPublicStatus
             }, { headers: { Authorization: `Bearer ${token}` } });
@@ -271,7 +271,7 @@ export default function UserPage() {
                 { headers: { Authorization: `Bearer ${token}` } }
             );
     
-            const updatedListsResponse = await axios.get('http://${path}:8080/api/user_lists/mylists', {
+            const updatedListsResponse = await axios.get(`http://${path}:8080/api/user_lists/mylists`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
     

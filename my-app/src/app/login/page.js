@@ -6,7 +6,7 @@ import Image from 'next/image';
 //LOGIN PAGE
 export default function NewPage() {
  
-  const path ="ec2-54-237-246-157.compute-1.amazonaws.com";
+  const path ="ec2-54-81-209-77.compute-1.amazonaws.com";
 
   // State to store form data
   const [formData, setFormData] = useState({
@@ -17,7 +17,7 @@ export default function NewPage() {
  
   const resendVerificationEmail = async (email) => {
     try {
-        const response = await fetch('http://${path}:8080/api/users/resendVerification', {
+        const response = await fetch(`http://${path}:8080/api/users/resendVerification`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -52,7 +52,7 @@ export default function NewPage() {
                 <div>
                     <span style={{ fontWeight: 'bold', color: 'green' }}>Account successfully verified.</span>
                     {' '}
-                    <a href="http://${path}:3000/login" style={{ fontWeight: 'bold', color: 'blue', textDecoration: 'underline' }}>Login</a>.                      
+                    <a href="http://ec2-54-81-209-77.compute-1.amazonaws.com:3000/login" style={{ fontWeight: 'bold', color: 'blue', textDecoration: 'underline' }}>Login</a>.                      
                     <br />
                 </div>
             );
@@ -76,7 +76,7 @@ export default function NewPage() {
     e.preventDefault(); // Prevents the default form submission behavior
 
     try {
-        const response = await fetch('http://${path}:8080/api/users/login', {
+        const response = await fetch(`http://${path}:8080/api/users/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -93,10 +93,10 @@ export default function NewPage() {
               localStorage.setItem('token', data.token); // Save the token to localStorage
               if (data.isAdmin) {
                   // Redirect to admin page
-                  window.location.href = 'http://${path}:3000/admin';
+                  window.location.href = `http://${path}:3000/admin`;
               } else {
                   // Redirect to user page
-                  window.location.href = 'http://${path}:3000/user';
+                  window.location.href = `http://${path}:3000/user`;
                   
               }
           } 
@@ -166,7 +166,7 @@ export default function NewPage() {
             />
           </div>
           <div className="flex justify-center">
-            <a href="http://${path}:3000/updatePass" className="text-blue-500 font-bold">Update Password</a>
+            <a href="http://ec2-54-81-209-77.compute-1.amazonaws.com:3000/updatePass" className="text-blue-500 font-bold">Update Password</a>
           </div>          
           <button type="submit" className="mt-4 w-full bg-superhero-blue hover:bg-superhero-dark-blue text-white font-bold py-2 rounded-md shadow-lg hover:shadow-superhero-lg transition-all">Log In</button>
         </form>

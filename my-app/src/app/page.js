@@ -4,7 +4,7 @@ import axios from 'axios';
 
 export default function HomePage() {
 
-    const path ="ec2-54-237-246-157.compute-1.amazonaws.com";
+    const path ="ec2-54-81-209-77.compute-1.amazonaws.com";
 
     const [search, setSearch] = useState({
         name: '',
@@ -47,7 +47,7 @@ export default function HomePage() {
     const handleSearch = async () => {
         setLoading(true);
         try {
-            const response = await axios.get('http://${path}:8080/api/superhero_info/search', {
+            const response = await axios.get(`http://${path}:8080/api/superhero_info/search`, {
                 params: { ...search }
             });
             setSearchResults(response.data);
@@ -84,7 +84,7 @@ export default function HomePage() {
     const fetchPublicLists = async () => {
         try {
             
-            const response = await axios.get('http://${path}:8080/api/user_lists');
+            const response = await axios.get(`http://${path}:8080/api/user_lists`);
             const publicListsData = response.data
                 .filter(list => list.isPublic) // Filter for public lists
                 .sort((a, b) => new Date(b.lastModified) - new Date(a.lastModified)) // Sort by lastModified date
@@ -97,7 +97,7 @@ export default function HomePage() {
         };
         const fetchPublicReviews = async () => {
             try {
-                const response = await axios.get('http://${path}:8080/api/user_lists/publicReviews');
+                const response = await axios.get(`http://${path}:8080/api/user_lists/publicReviews`);
                 setPublicReviews(response.data);
             } catch (error) {
                 console.error('Error fetching public reviews:', error);
@@ -148,10 +148,10 @@ export default function HomePage() {
                 <h1 className="text-2xl font-bold mb-4">Welcome to Superhero Portal</h1>
                 <h3 className="text-1xl font-italic mb-4">This website allows users to search for and manage superhero lists, offering features like authentication and administrative controls.</h3>
                 <div className="button-container inline-block">
-                    <a href="http://${path}:3000/login" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-4">
+                    <a href="http://ec2-54-81-209-77.compute-1.amazonaws.com:3000/login" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-4">
                         Login
                     </a>
-                    <a href="http://${path}:3000/createAcc" className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+                    <a href="http://ec2-54-81-209-77.compute-1.amazonaws.com:3000/createAcc" className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
                         Create Account
                     </a>
                 </div>

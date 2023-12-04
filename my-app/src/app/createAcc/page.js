@@ -7,7 +7,7 @@ import { useRouter } from 'next/router';
 
 export default function CreateAccount() {
 
-    const path ="ec2-54-237-246-157.compute-1.amazonaws.com";
+    const path ="ec2-54-81-209-77.compute-1.amazonaws.com";
 
     const [formData, setFormData] = useState({
         email: '',
@@ -26,7 +26,7 @@ export default function CreateAccount() {
         e.preventDefault();
 
         try {
-            const response = await fetch('http://${path}:8080/api/users/register', {
+            const response = await fetch(`http://${path}:8080/api/users/register`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -61,7 +61,7 @@ export default function CreateAccount() {
                     <div>
                         <span style={{ fontWeight: 'bold', color: 'green' }}>Account successfully verified.</span>
                         {' '}
-                        <a href="http://${path}:3000/login" style={{ fontWeight: 'bold', color: 'blue', textDecoration: 'underline' }}>Login</a>.                      
+                        <a href="http://ec2-54-81-209-77.compute-1.amazonaws.com:3000/login" style={{ fontWeight: 'bold', color: 'blue', textDecoration: 'underline' }}>Login</a>.                      
                         <br />
                     </div>
                 );
