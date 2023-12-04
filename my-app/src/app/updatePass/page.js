@@ -4,11 +4,15 @@ import Image from 'next/image';
 
 
 export default function UpdatePassword() {
+  
+  const path ="ec2-54-237-246-157.compute-1.amazonaws.com";
+
   const [formData, setFormData] = useState({
     email: '',
     oldPassword: '',
     newPassword: ''
   });
+
 
   // Function to update state on input change
   const handleInputChange = (e) => {
@@ -22,7 +26,7 @@ export default function UpdatePassword() {
     e.preventDefault();
 
     try {
-        const response = await fetch('http://localhost:8080/api/users/updatePassword', {
+        const response = await fetch('http://${path}:8080/api/users/updatePassword', {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'

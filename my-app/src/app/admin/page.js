@@ -16,6 +16,8 @@ function AdminPage() {
   const [selectedPolicyType, setSelectedPolicyType] = useState('');
   const [policyContent, setPolicyContent] = useState('');
 
+  const path ="ec2-54-237-246-157.compute-1.amazonaws.com";
+
 
   useEffect(() => {
     fetchNonAdminUsers();
@@ -25,7 +27,7 @@ function AdminPage() {
 
   const fetchNonAdminUsers = async () => {
     try {
-      const response = await axios.get('http://localhost:8080/api/users/nonAdminUsers');
+      const response = await axios.get('http://${path}:8080/api/users/nonAdminUsers');
       setUsers(response.data);
     } catch (error) {
       setError('Failed to fetch non-admin users. ' + error.message);
@@ -47,7 +49,7 @@ function AdminPage() {
 
     try {
       const response = await axios.put(
-        'http://localhost:8080/api/users/grantAdmin',
+        'http://${path}:8080/api/users/grantAdmin',
         { userEmail: selectedUserEmail },
         { headers: { Authorization: `Bearer ${storedToken}` } }
       );
@@ -73,8 +75,8 @@ function AdminPage() {
 
     try {
       const endpoint = isUserDeactivated
-        ? 'http://localhost:8080/api/users/reactivateUser'
-        : 'http://localhost:8080/api/users/deactivateUser';
+        ? 'http://${path}:8080/api/users/reactivateUser'
+        : 'http://${path}:8080/api/users/deactivateUser';
 
       const response = await axios.put(
         endpoint,
@@ -96,7 +98,7 @@ function AdminPage() {
 
   const fetchLists = async () => {
     try {
-      const response = await axios.get('http://localhost:8080/api/user_lists/revAndID');
+      const response = await axios.get('http://${path}:8080/api/user_lists/revAndID');
       setLists(response.data);
     } catch (error) {
       setError('Failed to fetch lists. ' + error.message);
@@ -123,8 +125,8 @@ function AdminPage() {
     }
 
     const endpoint = reviewVisibility
-      ? `http://localhost:8080/api/user_lists/${selectedListName}/reviews/hide`
-      : `http://localhost:8080/api/user_lists/${selectedListName}/reviews/unhide`;
+      ? `http://${path}:8080/api/user_lists/${selectedListName}/reviews/hide`
+      : `http://${path}:8080/api/user_lists/${selectedListName}/reviews/unhide`;
 
     try {
       const response = await axios.put(
@@ -167,7 +169,7 @@ function AdminPage() {
 
     try {
       const response = await axios.post(
-        'http://localhost:8080/api/policies',
+        'http://${path}:8080/api/policies',
         { policyType: selectedPolicyType, content: policyContent },
         { headers: { Authorization: `Bearer ${storedToken}` } }
       );

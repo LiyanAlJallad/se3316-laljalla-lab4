@@ -6,10 +6,8 @@ import { useRouter } from 'next/router';
 
 
 export default function CreateAccount() {
-    // const router = useRouter();
-    // useEffect(() => {
-    //     // Use router here
-    // }, []);
+
+    const path ="ec2-54-237-246-157.compute-1.amazonaws.com";
 
     const [formData, setFormData] = useState({
         email: '',
@@ -28,7 +26,7 @@ export default function CreateAccount() {
         e.preventDefault();
 
         try {
-            const response = await fetch('http://localhost:8080/api/users/register', {
+            const response = await fetch('http://${path}:8080/api/users/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -55,7 +53,7 @@ export default function CreateAccount() {
 
     const handleVerify = async (token) => {
         try {
-            const verifyResponse = await fetch(`http://localhost:8080/api/users/verifyEmail?token=${token}`, {
+            const verifyResponse = await fetch(`http://${path}:8080/api/users/verifyEmail?token=${token}`, {
                 method: 'GET',
             });
             if (verifyResponse.ok) {
@@ -63,7 +61,7 @@ export default function CreateAccount() {
                     <div>
                         <span style={{ fontWeight: 'bold', color: 'green' }}>Account successfully verified.</span>
                         {' '}
-                        <a href="http://localhost:3000/login" style={{ fontWeight: 'bold', color: 'blue', textDecoration: 'underline' }}>Login</a>.                      
+                        <a href="http://${path}:3000/login" style={{ fontWeight: 'bold', color: 'blue', textDecoration: 'underline' }}>Login</a>.                      
                         <br />
                     </div>
                 );
