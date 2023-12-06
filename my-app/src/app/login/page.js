@@ -52,7 +52,7 @@ export default function NewPage() {
                 <div>
                     <span style={{ fontWeight: 'bold', color: 'green' }}>Account successfully verified.</span>
                     {' '}
-                    <a href="http://ec2-54-81-209-77.compute-1.amazonaws.com:3000/login" style={{ fontWeight: 'bold', color: 'blue', textDecoration: 'underline' }}>Login</a>.                      
+                    <a href="http://ec2-54-91-245-249.compute-1.amazonaws.com:3000/login" style={{ fontWeight: 'bold', color: 'blue', textDecoration: 'underline' }}>Login</a>.                      
                     <br />
                 </div>
             );
@@ -166,7 +166,7 @@ export default function NewPage() {
             />
           </div>
           <div className="flex justify-center">
-            <a href="http://ec2-54-81-209-77.compute-1.amazonaws.com:3000/updatePass" className="text-blue-500 font-bold">Update Password</a>
+            <a href="http://ec2-54-91-245-249.compute-1.amazonaws.com:3000/updatePass" className="text-blue-500 font-bold">Update Password</a>
           </div>          
           <button type="submit" className="mt-4 w-full bg-superhero-blue hover:bg-superhero-dark-blue text-white font-bold py-2 rounded-md shadow-lg hover:shadow-superhero-lg transition-all">Log In</button>
         </form>

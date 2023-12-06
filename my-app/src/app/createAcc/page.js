@@ -61,7 +61,7 @@ export default function CreateAccount() {
                     <div>
                         <span style={{ fontWeight: 'bold', color: 'green' }}>Account successfully verified.</span>
                         {' '}
-                        <a href="http://ec2-54-81-209-77.compute-1.amazonaws.com:3000/login" style={{ fontWeight: 'bold', color: 'blue', textDecoration: 'underline' }}>Login</a>.                      
+                        <a href="http://ec2-54-91-245-249.compute-1.amazonaws.com:3000/login" style={{ fontWeight: 'bold', color: 'blue', textDecoration: 'underline' }}>Login</a>.                      
                         <br />
                     </div>
                 );
