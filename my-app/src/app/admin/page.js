@@ -16,7 +16,7 @@ function AdminPage() {
   const [selectedPolicyType, setSelectedPolicyType] = useState('');
   const [policyContent, setPolicyContent] = useState('');
 
-  const path ="ec2-54-81-209-77.compute-1.amazonaws.com";
+  const path ="ec2-54-91-245-249.compute-1.amazonaws.com";
 
 
   useEffect(() => {

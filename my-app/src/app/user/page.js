@@ -4,7 +4,7 @@ import axios from 'axios';
 
 export default function UserPage() {
     
-    const path ="ec2-54-81-209-77.compute-1.amazonaws.com";
+    const path ="ec2-54-91-245-249.compute-1.amazonaws.com";
 
     const [listName, setListName] = useState('');
     const [lists, setLists] = useState([]); // State to store user's lists

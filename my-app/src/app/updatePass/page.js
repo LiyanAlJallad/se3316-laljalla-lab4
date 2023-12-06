@@ -5,7 +5,7 @@ import Image from 'next/image';
 
 export default function UpdatePassword() {
   
-  const path ="ec2-54-81-209-77.compute-1.amazonaws.com";
+  const path ="ec2-54-91-245-249.compute-1.amazonaws.com";
 
   const [formData, setFormData] = useState({
     email: '',

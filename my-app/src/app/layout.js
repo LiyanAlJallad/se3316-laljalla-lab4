@@ -5,6 +5,8 @@ import './globals.css';
 
 const inter = Inter({ subsets: ['latin'] });
 
+const path ="ec2-54-91-245-249.compute-1.amazonaws.com";
+
 const Modal = ({ isOpen, onClose, title, children }) => {
   if (!isOpen) return null;
 
@@ -26,7 +28,7 @@ const Modal = ({ isOpen, onClose, title, children }) => {
   
 };
 
-const POLICIES_API_URL = 'http://localhost:8080/api/policies';
+const POLICIES_API_URL = `http://${path}:8080/api/policies`;
 
 // RootLayout component
 export default function RootLayout({ children }) {
@@ -47,7 +49,7 @@ export default function RootLayout({ children }) {
     // Convert the title to a format that matches the backend's expected parameter
     const policyKey = policyType.replace(/\s+/g, '');
     
-    fetch(`http://localhost:8080/api/policies/${policyKey}`)
+    fetch(`http://${path}:8080/api/policies/${policyKey}`)
       .then(response => response.json())
       .then(data => {
         setModalTitle(policyType);
